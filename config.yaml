@@ -1,0 +1,142 @@
+---
+# MQTT Client Configuration
+
+# MQTT Broker settings
+mqtt:
+  broker: "test.mosquitto.org"
+  port: 1883
+  reconnect_interval: 5
+  max_reconnect_attempts: -1  # -1 means infinite attempts
+  throttle_interval: 0.1  # Minimum seconds between MQTT publishes
+
+# Device configuration
+device:
+  device_id: "vision_system_01"  # Unique identifier for this device instance
+  status_publish_interval: 30.0  # Seconds between status publications
+
+# Namespace configuration
+namespace: "icsia"
+
+# Topics configuration (patterns use {namespace} and {device_id} placeholders)
+topics:
+  command: "{namespace}/+/cmd/#"  # Subscribe to all device command topics
+  status:
+    ack: "{namespace}/{device_id}/status/ack"  # Acknowledgment status topic pattern
+    completion: "{namespace}/{device_id}/status/completion"  # Completion status topic pattern
+    current: "{namespace}/{device_id}/status/current"  # Periodic status topic pattern
+  log: "{namespace}/{device_id}/logs"  # Device-specific log topic pattern
+
+# Status payload configuration
+# Define the structure and default values for the status/current topic
+#
+# VALIDATION RULES:
+# - Fields with simple values (string, number, boolean) = Use value as default
+# - Fields with {"default": value} syntax = Use explicit default value
+# - Fields not defined here = Allowed (for flexibility)
+# - All defined fields are validated for type when updated
+#
+status:
+  payload:
+    # System status fields (will be overridden by system state)
+    operational_status: "idle"  # Will be overridden by system state
+
+    # Custom fields for domain-specific status (examples below)
+    # Motor control fields (uncomment and modify as needed)
+    # current_position:
+    #   x: 0.0
+    #   y: 0.0
+    #   z: 0.0
+    # speed: 100
+    # moving: false
+
+    # Sensor monitoring fields (uncomment and modify as needed)
+    # temperature: 25.0
+    # humidity: 50.0
+    # voltage: 12.0
+
+    # System monitoring fields with explicit defaults (uncomment and modify as needed)
+    # error_count:
+    #   default: 0
+    # uptime_seconds:
+    #   default: 0
+    # memory_usage: 0.0
+
+    # Network status fields (uncomment and modify as needed)
+    # connection_quality: "good"
+    # last_heartbeat: null
+
+# Command payload configuration
+# Define validation schemas for command payloads
+#
+# VALIDATION RULES:
+# - ALL fields defined here are REQUIRED unless explicitly marked as optional
+# - Fields with simple values (string, number, boolean) = REQUIRED
+# - Fields with nested objects = REQUIRED
+# - Fields with {"default": value} syntax = OPTIONAL (will use default if missing)
+# - Fields not defined here = IGNORED (no validation)
+#
+# STANDARD FIELDS (automatically handled by framework):
+# - "cmd_id": REQUIRED - unique command identifier (must be provided by client)
+# - "timestamp": AUTOMATICALLY GENERATED - server processing timestamp (UTC with milliseconds precision)
+# - "command": OPTIONAL - command name (extracted from topic or can be in payload)
+#
+# EXAMPLES:
+commands:
+  payload:
+    # Camera Control API example (topic-based commands)
+    # Topic: icsia/camera_01/cmd/settings
+    # Payload: {"cmd_id": "camera_cmd_001", "settings": {...}}
+    # Note: timestamp is always auto-generated
+    settings:
+      settings:              # REQUIRED - nested camera settings object
+        focus: "auto"        # REQUIRED - focus setting
+        shutter: 0.1         # REQUIRED - shutter speed
+        gain: 6              # REQUIRED - gain value
+
+    # Topic: icsia/camera_01/cmd/enable
+    # Payload: {"cmd_id": "camera_cmd_002", "enabled": true}
+    # Note: timestamp is always auto-generated
+    enable:
+      enabled: true          # REQUIRED - enable/disable flag
+
+    # Device control example (all fields required)
+    # configure:
+    #   mode: "auto"         # REQUIRED - must be provided in command
+    #   speed: 100           # REQUIRED - must be provided in command
+    #   threshold: 50.0      # REQUIRED - must be provided in command
+
+    # Mixed required/optional example
+    # setup:
+    #   setting_name: "default_setting"  # REQUIRED - must be provided
+    #   timeout:                         # OPTIONAL - has explicit default
+    #     default: 30
+    #   enabled: true                    # REQUIRED - must be provided
+    #   debug_mode:                      # OPTIONAL - has explicit default
+    #     default: false
+
+    # Complex nested structure (all required)
+    # process:
+    #   input_file: "input.txt"    # REQUIRED - must be provided
+    #   parameters:                # REQUIRED - entire nested object must be provided
+    #     mode: "auto"             # REQUIRED - must be in parameters object
+    #     priority: 1              # REQUIRED - must be in parameters object
+    #   output_dir:                # OPTIONAL - has explicit default
+    #     default: "/tmp/output"
+
+    # Empty schema allows any payload (no validation)
+    # ping: {}
+
+# Logger settings
+logger:
+  log_file: "{namespace}_{device_id}.log"
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Worker configuration
+workers:
+  count: 3
+
+# Application settings
+application:
+  name: "MQTT application"
+  version: "0.1.0"
