@@ -1,0 +1,100 @@
+---
+# Motor Control MQTT Configuration
+
+# MQTT Broker settings
+mqtt:
+  broker: "test.mosquitto.org"
+  port: 1883
+  reconnect_interval: 5
+  max_reconnect_attempts: -1
+  throttle_interval: 0.1
+
+# Device configuration
+device:
+  device_id: "motor_controller_01"
+  status_publish_interval: 1.0  # Fast updates for motor position
+
+# Namespace configuration
+namespace: "icsia"
+
+# Topics configuration
+topics:
+  command: "{namespace}/+/cmd/#"  # Motor API uses /cmd/ not /command/
+  status:
+    ack: "{namespace}/{device_id}/status/ack"
+    completion: "{namespace}/{device_id}/status/completion"
+    current: "{namespace}/{device_id}/status/current"
+    homing_status: "{namespace}/{device_id}/status/homing_status"
+  log: "{namespace}/{device_id}/logs"
+
+# Status payload configuration - matches Motor Control API
+status:
+  payload:
+    # Motor position (required by Motor Control API)
+    current_position:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    speed: 100
+    moving: false
+
+    # Additional system monitoring
+    temperature:
+      default: 25.0
+    voltage:
+      default: 12.0
+    error_count:
+      default: 0
+    uptime_seconds:
+      default: 0
+    homed: false
+
+# Logger settings
+logger:
+  log_file: "{device_id}.log"
+  log_level: "INFO"
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Worker configuration
+workers:
+  count: 3
+
+# Command payload validation schemas
+# Commands are identified by topic path: icsia/<device_id>/cmd/<command_name>
+# Payloads contain only cmd_id and command-specific data (no "command" field)
+commands:
+  # Motor Control API commands
+  # Topic: icsia/<device_id>/cmd/move
+  # Payload: {"cmd_id": "move_001", "target_position": {"x": 10.0, "y": 5.0, "z": 0.0}, "speed": 150}
+  move:
+    target_position:    # Required nested structure
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    speed: 100          # Required field with default value
+    mode: "absolute"    # Required field with default value
+
+  # Topic: icsia/<device_id>/cmd/home
+  # Payload: {"cmd_id": "home_001", "axis": "all"}
+  home:
+    axis: "all"         # Required field with default value
+
+  # Topic: icsia/<device_id>/cmd/set_speed
+  # Payload: {"cmd_id": "speed_001", "speed": 200, "units": "mm/s"}
+  set_speed:
+    speed: 100          # Required field
+    units: "mm/s"       # Required field with default value
+
+  # Topic: icsia/<device_id>/cmd/get_position
+  # Payload: {"cmd_id": "pos_001"}
+  get_position: {}
+
+  # Topic: icsia/<device_id>/cmd/enable
+  # Payload: {"cmd_id": "enable_001", "enabled": true}
+  enable:
+    enabled: true       # Required field
+
+# Application settings
+application:
+  name: "Motor Control MQTT Client"
+  version: "0.1.0"

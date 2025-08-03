@@ -1,0 +1,13 @@
+include README.md
+include LICENSE
+include config.yaml
+include pyproject.toml
+recursive-include mqtt_application_lib *.py
+recursive-include tests *.py
+exclude tests/__pycache__
+exclude mqtt_application_lib/__pycache__
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude __pycache__
+global-exclude *.so

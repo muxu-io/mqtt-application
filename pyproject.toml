@@ -1,0 +1,68 @@
+# pyproject.toml
+# This is the pyproject.toml file for the mqtt-application package.
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mqtt-application"
+version = "0.1.0"
+description = "A comprehensive asynchronous MQTT application library"
+authors = [
+    {name = "Alex Gonzalez", email = "alex@muxu.io"},
+]
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = ["mqtt", "async", "iot", "messaging", "client"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Communications",
+    "Topic :: Internet :: WWW/HTTP :: Browsers",
+]
+dependencies = [
+    "pyyaml>=6.0.0",
+    # Local dependencies are removed from here and installed via the command line.
+    "mqtt-logger",
+    "mqtt-connector",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.0.0",
+    "black>=22.0.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+# Optional testing tools
+testing = [
+    "pytest-watch>=4.2.0",
+    "pytest-sugar>=0.9.0",
+    "pytest-html>=3.1.0",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
