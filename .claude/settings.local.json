@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest -v)",
+      "Bash(source:*)",
+      "Bash(python -m pytest tests/test_command_validation.py -v --tb=short)",
+      "Bash(python -m pytest tests/test_callback_registration.py::TestCallbackRegistration::test_register_callback_basic -v --tb=short)",
+      "Bash(python -m pytest tests/test_callback_registration.py::TestCallbackRegistration::test_topic_matching_logic -v --tb=short)",
+      "Bash(python -m pytest tests/test_command_validation.py::test_command_validation_basic_types -v --tb=short)",
+      "Bash(python -m pytest tests/test_callback_registration.py -v --tb=short)",
+      "Bash(python -m pytest tests/test_status_validation.py -v --tb=short)",
+      "Bash(python -m pytest tests/test_main.py -v --tb=short)",
+      "Bash(python -m pytest -m \"not integration\" --tb=short -q)",
+      "Bash(python -m pytest tests/test_callback_registration.py tests/test_command_validation.py::test_command_validation_basic_types -v --tb=short)",
+      "Bash(python -m pytest tests/test_integration.py::TestMqttIntegration::test_command_handler_mqtt -v --tb=short -s)",
+      "Bash(timeout 15s python -m pytest:*)",
+      "Bash(timeout 10s python -m pytest:*)",
+      "Bash(timeout:*)",
+      "Bash(python:*)"
+    ],
+    "deny": []
+  }
+}
