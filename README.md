@@ -31,9 +31,6 @@ source .venv/bin/activate  # On Linux/macOS
 # or
 .venv\Scripts\activate     # On Windows
 
-# Install the mqtt-connector package first
-pushd ../mqtt-connector && pip install -e "." && popd
-
 # Install the mqtt-logger package
 pushd ../mqtt-logger && pip install -e "." && popd
 
@@ -45,7 +42,7 @@ pushd ../mqtt-application && pip install -e "." && popd
 
 This package requires the following external modules:
 - `mqtt-logger`: For MQTT-enabled logging capabilities
-- `mqtt-connector`: For low-level MQTT connection management
+- `muxu-io-mqtt-connector`: For low-level MQTT connection management (PyPI package)
 
 ## Quick Start
 
@@ -510,7 +507,7 @@ The library is designed with a modular architecture:
 
 - **External modules** (must be installed separately):
   - `mqtt-logger`: MQTT-enabled logging
-  - `mqtt-connector`: Low-level MQTT operations
+  - `muxu-io-mqtt-connector`: Low-level MQTT operations
 - **Standard dependencies**:
   - `aiomqtt`: Async MQTT client
   - `pyyaml`: YAML configuration parsing

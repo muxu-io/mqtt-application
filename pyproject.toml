@@ -32,7 +32,7 @@ dependencies = [
     "pyyaml>=6.0.0",
     # Local dependencies are removed from here and installed via the command line.
     "mqtt-logger",
-    "mqtt-connector",
+    "muxu-io-mqtt-connector",
 ]
 
 [project.optional-dependencies]
