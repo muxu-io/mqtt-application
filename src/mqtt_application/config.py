@@ -5,6 +5,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
+
 import yaml
 
 
@@ -48,12 +49,8 @@ class TopicsConfig:
         return TopicsConfig(
             command=self.command.format(namespace=namespace),
             status_ack=self.status_ack.format(namespace=namespace, device_id=device_id),
-            status_completion=self.status_completion.format(
-                namespace=namespace, device_id=device_id
-            ),
-            status_current=self.status_current.format(
-                namespace=namespace, device_id=device_id
-            ),
+            status_completion=self.status_completion.format(namespace=namespace, device_id=device_id),
+            status_current=self.status_current.format(namespace=namespace, device_id=device_id),
             log=self.log.format(namespace=namespace, device_id=device_id),
         )
 
@@ -134,28 +131,25 @@ class AppConfig:
         return config_file
 
     @classmethod
-    def _load_yaml_config(
-        cls, config_file: str, base_dir: Optional[str] = None
-    ) -> tuple[Dict[str, Any], str]:
+    def _load_yaml_config(cls, config_file: str, base_dir: Optional[str] = None) -> tuple[Dict[str, Any], str]:
         """Load YAML config file and return data with original filename."""
         original_config_file = config_file
         resolved_config_file = cls._resolve_config_path(config_file, base_dir)
 
         if os.path.exists(resolved_config_file):
-            with open(resolved_config_file, "r") as f:
+            with open(resolved_config_file) as f:
                 config_data = yaml.safe_load(f) or {}
             return config_data, original_config_file
         else:
             # Warn that no config file was found and defaults will be used
             logger = logging.getLogger(__name__)
             logger.warning(
-                f"Configuration file '{original_config_file}' not found (looked in: {resolved_config_file}). Using default configuration values."
+                f"Configuration file '{original_config_file}' not found (looked in: {resolved_config_file}). "
+                f"Using default configuration values."
             )
             return {}, original_config_file
 
-    def _apply_simple_section(
-        self, target_obj: Any, section_data: Dict[str, Any]
-    ) -> None:
+    def _apply_simple_section(self, target_obj: Any, section_data: Dict[str, Any]) -> None:
         """Apply a simple key-value section to a target object."""
         for key, value in section_data.items():
             if hasattr(target_obj, key):
@@ -209,9 +203,7 @@ class AppConfig:
             self._apply_config_section(section_name, section_data)
 
     @classmethod
-    def from_file(
-        cls, config_file: str = "config.yaml", base_dir: Optional[str] = None
-    ) -> "AppConfig":
+    def from_file(cls, config_file: str = "config.yaml", base_dir: Optional[str] = None) -> "AppConfig":
         """Load configuration from YAML file with environment variable override.
 
         Args:

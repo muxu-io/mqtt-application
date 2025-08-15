@@ -1,7 +1,8 @@
 import asyncio
 import os
 import sys
-from typing import Dict, Callable, Optional, Any
+from typing import Any, Callable, Dict, Optional
+
 from mqtt_connector import MqttConnector
 from mqtt_logger import MqttLogger
 
@@ -67,9 +68,7 @@ class MqttConnectionManager:
         log_message = f"MqttConnectionManager: {message}"
 
         # Check if stdout logging is enabled (same mechanism as MqttLogger)
-        enable_stdout = os.environ.get(
-            "MQTT_LOGGER_ENABLE_STDOUT", "false"
-        ).lower() in ("true", "1", "yes", "on")
+        enable_stdout = os.environ.get("MQTT_LOGGER_ENABLE_STDOUT", "false").lower() in ("true", "1", "yes", "on")
 
         try:
             # Check if we're in an async context first
@@ -111,9 +110,7 @@ class MqttConnectionManager:
                 try:
                     callback(topic, payload, None)
                 except Exception as e:
-                    self.logger.error(
-                        f"Error in message callback for topic {topic}: {e}"
-                    )
+                    self.logger.error(f"Error in message callback for topic {topic}: {e}")
 
     def _topic_matches(self, topic: str, pattern: str) -> bool:
         """Check if a topic matches a pattern with MQTT wildcards.
@@ -130,9 +127,7 @@ class MqttConnectionManager:
         if pattern_parts and pattern_parts[-1] == "#":
             pattern_prefix = pattern_parts[:-1]
             if len(topic_parts) >= len(pattern_prefix):
-                for i, (t_part, p_part) in enumerate(
-                    zip(topic_parts[: len(pattern_prefix)], pattern_prefix)
-                ):
+                for _i, (t_part, p_part) in enumerate(zip(topic_parts[: len(pattern_prefix)], pattern_prefix)):
                     if p_part != "+" and p_part != t_part:
                         return False
                 return True
@@ -143,9 +138,7 @@ class MqttConnectionManager:
             return False
 
         for i, (t_part, p_part) in enumerate(zip(topic_parts, pattern_parts)):
-            self.logger.debug(
-                f"[DEBUG] Comparing topic part '{t_part}' with pattern part '{p_part}' at position {i}"
-            )
+            self.logger.debug(f"Comparing topic part '{t_part}' with pattern part '{p_part}' at position {i}")
             if p_part != "+" and p_part != t_part:
                 return False
 
@@ -154,14 +147,13 @@ class MqttConnectionManager:
     async def connect(self) -> bool:
         """Connect to the MQTT broker."""
         # Check if stdout logging is enabled (same mechanism as MqttLogger)
-        enable_stdout = os.environ.get(
-            "MQTT_LOGGER_ENABLE_STDOUT", "false"
-        ).lower() in ("true", "1", "yes", "on")
+        enable_stdout = os.environ.get("MQTT_LOGGER_ENABLE_STDOUT", "false").lower() in ("true", "1", "yes", "on")
 
         # Log connection attempt if stdout is enabled - this prints immediately before any network operations
         if enable_stdout:
             print(
-                f"[INFO] MqttConnectionManager: Attempting to connect to {self._connector.mqtt_broker}: {self._connector.mqtt_port}",
+                f"[INFO] MqttConnectionManager: Attempting to connect to "
+                f"{self._connector.mqtt_broker}: {self._connector.mqtt_port}",
                 file=sys.stderr,
             )
             sys.stderr.flush()  # Ensure immediate output
@@ -179,7 +171,8 @@ class MqttConnectionManager:
                 # Fallback if logger isn't available
                 if enable_stdout:
                     print(
-                        f"[INFO] MqttConnectionManager: Successfully connected to {self._connector.mqtt_broker}: {self._connector.mqtt_port}",
+                        f"[INFO] MqttConnectionManager: Successfully connected to "
+                        f"{self._connector.mqtt_broker}: {self._connector.mqtt_port}",
                         file=sys.stderr,
                     )
         return connected
@@ -204,9 +197,7 @@ class MqttConnectionManager:
                         import asyncio
 
                         if self._event_loop and self._event_loop.is_running():
-                            asyncio.run_coroutine_threadsafe(
-                                callback(topic, payload, None), self._event_loop
-                            )
+                            asyncio.run_coroutine_threadsafe(callback(topic, payload, None), self._event_loop)
                         else:
                             # Try to find a running event loop
                             try:
@@ -219,9 +210,7 @@ class MqttConnectionManager:
                     else:
                         callback(topic, payload, None)
                 except Exception as e:
-                    self.logger.error(
-                        f"Error in message callback for topic {topic}: {e}"
-                    )
+                    self.logger.error(f"Error in message callback for topic {topic}: {e}")
 
     async def disconnect(self) -> None:
         """Disconnect from the MQTT broker."""
@@ -229,9 +218,7 @@ class MqttConnectionManager:
         self._subscribed_topics.clear()
         self._message_callbacks.clear()
 
-    async def subscribe(
-        self, topic: str, callback: Callable[[str, str, Optional[Dict[str, Any]]], None]
-    ) -> bool:
+    async def subscribe(self, topic: str, callback: Callable[[str, str, Optional[Dict[str, Any]]], None]) -> bool:
         """Subscribe to a topic with a callback.
 
         Args:
@@ -294,9 +281,7 @@ class MqttConnectionManager:
                 return True
         return True
 
-    async def publish(
-        self, topic: str, payload: Any, qos: int = 0, retain: bool = False
-    ) -> bool:
+    async def publish(self, topic: str, payload: Any, qos: int = 0, retain: bool = False) -> bool:
         """Publish a message to a topic.
 
         Args:
@@ -338,9 +323,7 @@ class MqttConnectionManager:
                 if not self.is_connected:
                     connected = await self.connect()
                     if not connected:
-                        self.logger.warning(
-                            f"MQTT not connected (attempt {attempt + 1}/{max_retries})"
-                        )
+                        self.logger.warning(f"MQTT not connected (attempt {attempt + 1}/{max_retries})")
                         raise RuntimeError("MQTT not connected")
 
                 # Try to publish
@@ -351,18 +334,12 @@ class MqttConnectionManager:
                         self.logger.info(f"📤 Command published to {topic}")
                         self.logger.debug(f"Command payload: {payload}")
                     else:
-                        self.logger.debug(
-                            f"Published to {topic} (attempt {attempt + 1})"
-                        )
+                        self.logger.debug(f"Published to {topic} (attempt {attempt + 1})")
                     return True
                 else:
-                    self.logger.warning(
-                        f"Publish failed for {topic} (attempt {attempt + 1})"
-                    )
+                    self.logger.warning(f"Publish failed for {topic} (attempt {attempt + 1})")
             except Exception as e:
-                self.logger.warning(
-                    f"Publish error for {topic} (attempt {attempt + 1}): {e}"
-                )
+                self.logger.warning(f"Publish error for {topic} (attempt {attempt + 1}): {e}")
 
             # Exponential backoff (except on final attempt)
             if attempt < max_retries - 1:
@@ -395,11 +372,7 @@ class MqttConnectionManager:
             try:
                 loop = asyncio.get_running_loop()
                 # Use call_soon to schedule the subscription without blocking
-                loop.call_soon_threadsafe(
-                    lambda: asyncio.create_task(
-                        self._auto_subscribe_safe(topic_pattern)
-                    )
-                )
+                loop.call_soon_threadsafe(lambda: asyncio.create_task(self._auto_subscribe_safe(topic_pattern)))
             except RuntimeError:
                 # No event loop running - subscription will need to happen manually
                 self.logger.warning(
@@ -408,9 +381,7 @@ class MqttConnectionManager:
                 )
 
             self._subscribed_topics.add(topic_pattern)
-            self.logger.info(
-                f"Scheduled auto-subscription to topic: {topic_pattern} when registering callback."
-            )
+            self.logger.info(f"Scheduled auto-subscription to topic: {topic_pattern} when registering callback.")
 
     async def _auto_subscribe_safe(self, topic_pattern: str) -> None:
         """Safely handle auto-subscription in async context."""
@@ -418,16 +389,10 @@ class MqttConnectionManager:
             if hasattr(self._connector, "subscribe"):
                 success = await self._connector.subscribe(topic_pattern)
                 if success:
-                    self.logger.debug(
-                        f"Auto-subscription successful for topic: {topic_pattern}"
-                    )
+                    self.logger.debug(f"Auto-subscription successful for topic: {topic_pattern}")
                 else:
-                    self.logger.warning(
-                        f"Auto-subscription failed for topic: {topic_pattern}"
-                    )
+                    self.logger.warning(f"Auto-subscription failed for topic: {topic_pattern}")
             else:
-                self.logger.warning(
-                    f"Connector does not support subscription for topic: {topic_pattern}"
-                )
+                self.logger.warning(f"Connector does not support subscription for topic: {topic_pattern}")
         except Exception as e:
             self.logger.error(f"Error during auto-subscription to {topic_pattern}: {e}")

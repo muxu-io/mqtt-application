@@ -1,8 +1,9 @@
 """Tests for the callback registration feature in MqttConnectionManager."""
 
 import asyncio
+from typing import Any, Dict, Optional
+
 import pytest
-from typing import Dict, Any, Optional
 
 
 class TestCallbackRegistration:
@@ -13,9 +14,7 @@ class TestCallbackRegistration:
         manager = connection_manager
         callback_calls = []
 
-        def test_callback(
-            topic: str, payload: str, properties: Optional[Dict[str, Any]]
-        ):
+        def test_callback(topic: str, payload: str, properties: Optional[Dict[str, Any]]):
             callback_calls.append((topic, payload))
 
         # Register callback
@@ -39,14 +38,10 @@ class TestCallbackRegistration:
         single_level_calls = []
         multi_level_calls = []
 
-        def single_level_callback(
-            topic: str, payload: str, properties: Optional[Dict[str, Any]]
-        ):
+        def single_level_callback(topic: str, payload: str, properties: Optional[Dict[str, Any]]):
             single_level_calls.append((topic, payload))
 
-        def multi_level_callback(
-            topic: str, payload: str, properties: Optional[Dict[str, Any]]
-        ):
+        def multi_level_callback(topic: str, payload: str, properties: Optional[Dict[str, Any]]):
             multi_level_calls.append((topic, payload))
 
         # Register callbacks with wildcards
@@ -56,19 +51,13 @@ class TestCallbackRegistration:
         # Test single-level wildcard
         manager._global_message_callback("icsia/device1/cmd/move", "move command")
         manager._global_message_callback("icsia/device2/cmd/move", "another move")
-        manager._global_message_callback(
-            "icsia/device1/cmd/stop", "stop command"
-        )  # Should not match
+        manager._global_message_callback("icsia/device1/cmd/stop", "stop command")  # Should not match
 
         # Test multi-level wildcard
         manager._global_message_callback("icsia/device1/status/current", "status")
         manager._global_message_callback("icsia/device1/status/ack", "ack")
-        manager._global_message_callback(
-            "icsia/device1/status/completion/result", "completion"
-        )
-        manager._global_message_callback(
-            "icsia/device2/status/current", "other status"
-        )  # Should not match
+        manager._global_message_callback("icsia/device1/status/completion/result", "completion")
+        manager._global_message_callback("icsia/device2/status/current", "other status")  # Should not match
 
         # Verify single-level wildcard matches
         assert len(single_level_calls) == 2
@@ -116,9 +105,7 @@ class TestCallbackRegistration:
         manager = connection_manager
         callback_calls = []
 
-        async def async_callback(
-            topic: str, payload: str, properties: Optional[Dict[str, Any]]
-        ):
+        async def async_callback(topic: str, payload: str, properties: Optional[Dict[str, Any]]):
             # Simulate async work
             await asyncio.sleep(0.01)
             callback_calls.append((topic, payload))
@@ -138,9 +125,7 @@ class TestCallbackRegistration:
         """Test error handling in callbacks."""
         manager = connection_manager
 
-        def failing_callback(
-            topic: str, payload: str, properties: Optional[Dict[str, Any]]
-        ):
+        def failing_callback(topic: str, payload: str, properties: Optional[Dict[str, Any]]):
             raise ValueError("Callback error")
 
         # Register failing callback
@@ -242,9 +227,7 @@ class TestCallbackRegistration:
         """Test that disconnect clears registered callbacks."""
         manager = connection_manager
 
-        def test_callback(
-            topic: str, payload: str, properties: Optional[Dict[str, Any]]
-        ):
+        def test_callback(topic: str, payload: str, properties: Optional[Dict[str, Any]]):
             pass
 
         # Register callback
@@ -269,9 +252,7 @@ class TestCallbackRegistration:
         manager = connection_manager
         callback_calls = []
 
-        def test_callback(
-            topic: str, payload: str, properties: Optional[Dict[str, Any]]
-        ):
+        def test_callback(topic: str, payload: str, properties: Optional[Dict[str, Any]]):
             callback_calls.append((topic, payload))
 
         # Register callback (with auto-subscribe)
@@ -296,9 +277,7 @@ class TestCallbackRegistration:
         manager = connection_manager
         callback_calls = []
 
-        def test_callback(
-            topic: str, payload: str, properties: Optional[Dict[str, Any]]
-        ):
+        def test_callback(topic: str, payload: str, properties: Optional[Dict[str, Any]]):
             callback_calls.append((topic, payload))
 
         # Register callback (with auto-subscribe)

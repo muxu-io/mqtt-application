@@ -6,9 +6,10 @@ end-to-end functionality. They require network access to test.mosquitto.org.
 
 import asyncio
 import json
-import pytest
 import time
 from datetime import datetime, timezone
+
+import pytest
 
 from mqtt_application import (
     AsyncCommandHandler,
@@ -49,9 +50,7 @@ class TestMqttIntegration:
         test_payload = json.dumps(
             {
                 "test": "integration",
-                "timestamp": datetime.now(timezone.utc)
-                .isoformat(timespec="milliseconds")
-                .replace("+00:00", "Z"),
+                "timestamp": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
             }
         )
 
@@ -76,9 +75,7 @@ class TestMqttIntegration:
         await command_handler.send_acknowledgment("test_device", "cmd_123", "received")
 
         # Test sending completion status
-        await command_handler.send_completion_status(
-            "test_device", "cmd_123", "completed", {"result": "success"}
-        )
+        await command_handler.send_completion_status("test_device", "cmd_123", "completed", {"result": "success"})
 
         # Test command processing
         test_topic = "icsia/test_device_integration/cmd/start_task"
@@ -145,9 +142,7 @@ class TestMqttIntegration:
         test_payload = json.dumps(
             {
                 "test": "message",
-                "timestamp": datetime.now(timezone.utc)
-                .isoformat(timespec="milliseconds")
-                .replace("+00:00", "Z"),
+                "timestamp": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
             }
         )
 
@@ -220,9 +215,7 @@ class TestEndToEndIntegration:
         }
 
         # Process command
-        await command_handler.handle_command(
-            "icsia/integration_test_device/cmd/start_task", json.dumps(test_command)
-        )
+        await command_handler.handle_command("icsia/integration_test_device/cmd/start_task", json.dumps(test_command))
 
         # Wait for async operations
         await asyncio.sleep(2.0)
@@ -270,9 +263,7 @@ class TestEndToEndIntegration:
         async def message_worker():
             while True:
                 try:
-                    topic, payload = await asyncio.wait_for(
-                        message_queue.get(), timeout=5.0
-                    )
+                    topic, payload = await asyncio.wait_for(message_queue.get(), timeout=5.0)
                     await command_handler.handle_command(topic, payload)
                     message_queue.task_done()
                 except asyncio.TimeoutError:

@@ -1,21 +1,22 @@
 """Pytest configuration and fixtures for MQTT client tests."""
 
 import asyncio
-import tempfile
 import os
+import tempfile
+
 import pytest
 import pytest_asyncio
 import yaml
+from mqtt_connector import MqttConnector
+from mqtt_logger import MqttLogger
 
 from mqtt_application import (
     AppConfig,
     AsyncCommandHandler,
     AsyncMqttClient,
-    PeriodicStatusPublisher,
     MqttConnectionManager,
+    PeriodicStatusPublisher,
 )
-from mqtt_logger import MqttLogger
-from mqtt_connector import MqttConnector
 
 
 # Add pytest markers for integration tests
@@ -58,9 +59,7 @@ async def mqtt_logger():
 @pytest_asyncio.fixture
 async def mqtt_connector():
     """Create a real MqttConnector instance for testing."""
-    connector = MqttConnector(
-        mqtt_broker="test.mosquitto.org", mqtt_port=1883, client_id="test_client"
-    )
+    connector = MqttConnector(mqtt_broker="test.mosquitto.org", mqtt_port=1883, client_id="test_client")
     yield connector
     # Cleanup
     if connector.connected:
@@ -151,9 +150,7 @@ async def connection_manager(mqtt_logger):
 @pytest_asyncio.fixture
 async def command_handler(mqtt_logger, connection_manager):
     """Create an AsyncCommandHandler instance for testing."""
-    handler = AsyncCommandHandler(
-        logger=mqtt_logger, connection_manager=connection_manager
-    )
+    handler = AsyncCommandHandler(logger=mqtt_logger, connection_manager=connection_manager)
     yield handler
 
     # Cleanup is handled by the connection_manager fixture
@@ -210,9 +207,7 @@ async def trackable_connection_manager(connection_manager):
 @pytest_asyncio.fixture
 async def trackable_command_handler(mqtt_logger, trackable_connection_manager):
     """Command handler that allows method tracking."""
-    handler = AsyncCommandHandler(
-        logger=mqtt_logger, connection_manager=trackable_connection_manager
-    )
+    handler = AsyncCommandHandler(logger=mqtt_logger, connection_manager=trackable_connection_manager)
     # Don't override send_acknowledgment - let it call the mocked publish method
     return handler
 

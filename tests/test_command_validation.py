@@ -23,6 +23,7 @@ Key validation rules tested:
 """
 
 import pytest
+
 from mqtt_application.command_handler import CommandValidationError
 
 
@@ -69,9 +70,7 @@ def test_command_validation_basic_types(trackable_command_handler):
         )
 
     # Invalid types should fail
-    with pytest.raises(
-        CommandValidationError, match="Field 'configure.count' expected int, got str"
-    ):
+    with pytest.raises(CommandValidationError, match="Field 'configure.count' expected int, got str"):
         handler.validate_command_payload(
             "configure",
             {
@@ -157,9 +156,7 @@ def test_command_validation_missing_required_field(trackable_command_handler):
     handler.command_schemas = command_config
 
     # Missing required simple field should fail
-    with pytest.raises(
-        CommandValidationError, match="Command 'process' missing required field 'name'"
-    ):
+    with pytest.raises(CommandValidationError, match="Command 'process' missing required field 'name'"):
         handler.validate_command_payload(
             "process",
             {
@@ -193,9 +190,7 @@ def test_command_validation_with_defaults(trackable_command_handler):
     """Test validation works correctly with explicit default value configs."""
     command_config = {
         "configure": {
-            "setting_name": {  # OPTIONAL - explicit default
-                "default": "default_setting"
-            },
+            "setting_name": {"default": "default_setting"},  # OPTIONAL - explicit default
             "priority": {"default": 1},  # OPTIONAL - explicit default
         }
     }
@@ -605,9 +600,7 @@ def test_command_validation_generic_device_comprehensive(trackable_command_handl
     handler.validate_command_payload("configure", configure_payload)
 
     # Invalid configure command - missing required field
-    with pytest.raises(
-        CommandValidationError, match="missing required field 'threshold'"
-    ):
+    with pytest.raises(CommandValidationError, match="missing required field 'threshold'"):
         handler.validate_command_payload(
             "configure",
             {
@@ -703,9 +696,7 @@ def test_command_validation_edge_cases_and_boundaries(trackable_command_handler)
         )
 
 
-def test_standard_fields_validation_in_handle_command(
-    trackable_command_handler, trackable_connection_manager
-):
+def test_standard_fields_validation_in_handle_command(trackable_command_handler, trackable_connection_manager):
     """Test that handle_command validates standard fields (command, cmd_id) presence."""
     import asyncio
     import json
@@ -752,28 +743,21 @@ def test_standard_fields_validation_in_handle_command(
             }
         )
 
-        await handler.handle_command(
-            "icsia/device_01/cmd/test_cmd", payload_missing_cmd_id
-        )
+        await handler.handle_command("icsia/device_01/cmd/test_cmd", payload_missing_cmd_id)
 
         # Should send error acknowledgment via publish call
         assert connection_manager.publish.called
         call_args = connection_manager.publish.call_args
         payload = call_args[0][1]
         assert payload["error_code"] == "INVALID_PAYLOAD"
-        assert (
-            payload["error_msg"]
-            == "Missing required field 'cmd_id'. Include cmd_id field in command payload."
-        )
+        assert payload["error_msg"] == "Missing required field 'cmd_id'. Include cmd_id field in command payload."
 
     # Test empty string values
     async def test_empty_string_values():
         connection_manager.publish.reset_mock()
 
         # Empty command - use topic pattern that doesn't extract command
-        payload_empty_command = json.dumps(
-            {"command": "", "cmd_id": "test_001", "value": 42}  # Empty string
-        )
+        payload_empty_command = json.dumps({"command": "", "cmd_id": "test_001", "value": 42})  # Empty string
 
         await handler.handle_command("icsia/device_01/cmd", payload_empty_command)
         # Should send error acknowledgment
@@ -785,13 +769,9 @@ def test_standard_fields_validation_in_handle_command(
         connection_manager.publish.reset_mock()
 
         # Empty cmd_id
-        payload_empty_cmd_id = json.dumps(
-            {"command": "test_cmd", "cmd_id": "", "value": 42}  # Empty string
-        )
+        payload_empty_cmd_id = json.dumps({"command": "test_cmd", "cmd_id": "", "value": 42})  # Empty string
 
-        await handler.handle_command(
-            "icsia/device_01/cmd/test_cmd", payload_empty_cmd_id
-        )
+        await handler.handle_command("icsia/device_01/cmd/test_cmd", payload_empty_cmd_id)
         # Should send error acknowledgment
         assert connection_manager.publish.called
         call_args = connection_manager.publish.call_args
@@ -859,9 +839,7 @@ def test_timestamp_field_validation_behavior(trackable_command_handler):
 
 
 @pytest.mark.asyncio
-async def test_error_code_consistency(
-    trackable_command_handler, trackable_connection_manager
-):
+async def test_error_code_consistency(trackable_command_handler, trackable_connection_manager):
     """Test that error codes are consistent across all error scenarios."""
     # Use trackable fixtures that have mocking built-in
     handler = trackable_command_handler
@@ -891,10 +869,7 @@ async def test_error_code_consistency(
     call_args = connection_manager.publish.call_args
     payload = call_args[0][1]
     assert payload["error_code"] == "INVALID_PAYLOAD"
-    assert (
-        payload["error_msg"]
-        == "Missing required field 'cmd_id'. Include cmd_id field in command payload."
-    )
+    assert payload["error_msg"] == "Missing required field 'cmd_id'. Include cmd_id field in command payload."
 
     # Reset mock
     connection_manager.publish.reset_mock()
@@ -916,9 +891,7 @@ async def test_error_code_consistency(
     connection_manager.publish.reset_mock()
 
     # Test 4: Unknown command should use UNKNOWN_COMMAND error code
-    await handler.handle_command(
-        "icsia/test_device/cmd/unknown", '{"cmd_id": "test123", "command": "unknown"}'
-    )
+    await handler.handle_command("icsia/test_device/cmd/unknown", '{"cmd_id": "test123", "command": "unknown"}')
 
     # Should send acknowledgment first, then completion with error
     assert connection_manager.publish.call_count == 2
@@ -974,9 +947,7 @@ async def test_status_publisher_thread_safety(
 
 
 @pytest.mark.asyncio
-async def test_connection_manager_thread_safety(
-    trackable_command_handler, trackable_connection_manager
-):
+async def test_connection_manager_thread_safety(trackable_command_handler, trackable_connection_manager):
     """Test that connection manager operations are thread-safe."""
     import asyncio
 
@@ -1009,9 +980,7 @@ async def test_connection_manager_thread_safety(
 
 
 @pytest.mark.asyncio
-async def test_graceful_shutdown_mechanism(
-    trackable_command_handler, trackable_connection_manager
-):
+async def test_graceful_shutdown_mechanism(trackable_command_handler, trackable_connection_manager):
     """Test graceful shutdown functionality."""
     # Use trackable fixtures that properly manage the logger
     handler = trackable_command_handler
@@ -1024,9 +993,7 @@ async def test_graceful_shutdown_mechanism(
 
     # Test that shutdown flag prevents new commands
     handler._shutdown_requested = True
-    await handler.handle_command(
-        "icsia/test_device/cmd/test", '{"cmd_id": "test", "command": "test"}'
-    )
+    await handler.handle_command("icsia/test_device/cmd/test", '{"cmd_id": "test", "command": "test"}')
 
     # Should not process the command
     assert not connection_manager.publish.called
@@ -1046,9 +1013,7 @@ async def test_graceful_shutdown_mechanism(
 
 
 @pytest.mark.asyncio
-async def test_command_execution_error_handling(
-    trackable_command_handler, trackable_connection_manager
-):
+async def test_command_execution_error_handling(trackable_command_handler, trackable_connection_manager):
     """Test error handling during command execution."""
     # Use trackable fixtures that have mocking built-in
     handler = trackable_command_handler
@@ -1075,24 +1040,19 @@ async def test_command_execution_error_handling(
     assert completion_payload["error_code"] == "EXECUTION_ERROR"
     assert (
         "Command execution failed:" in completion_payload["error_msg"]
-        and "Check command implementation and parameters."
-        in completion_payload["error_msg"]
+        and "Check command implementation and parameters." in completion_payload["error_msg"]
     )
 
 
 @pytest.mark.asyncio
-async def test_command_validation_error_handling(
-    trackable_command_handler, trackable_connection_manager
-):
+async def test_command_validation_error_handling(trackable_command_handler, trackable_connection_manager):
     """Test error handling for command validation failures."""
     # Use trackable fixtures that have mocking built-in
     handler = trackable_command_handler
     connection_manager = trackable_connection_manager
 
     # Create command config for validation testing
-    command_config = {
-        "validate_test": {"required_field": "value", "required_number": 42}
-    }
+    command_config = {"validate_test": {"required_field": "value", "required_number": 42}}
 
     # Update handler's config (correct property name)
     handler.command_schemas = command_config
@@ -1145,7 +1105,5 @@ async def test_status_publisher_error_path_updates(
     status_publisher.reset_mock()
 
     # Test 3: Unknown command should update status publisher with error
-    await handler.handle_command(
-        "icsia/test_device/cmd/unknown", '{"cmd_id": "test123", "command": "unknown"}'
-    )
+    await handler.handle_command("icsia/test_device/cmd/unknown", '{"cmd_id": "test123", "command": "unknown"}')
     status_publisher.set_operational_status.assert_called_with("error")

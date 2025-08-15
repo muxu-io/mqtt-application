@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Any
 
 from mqtt_logger import MqttLogger
+
 from .connection_manager import MqttConnectionManager
 
 
@@ -34,9 +35,7 @@ class AsyncMqttClient:
         self.connection_manager = connection_manager
         self._owns_connection = False
 
-    def _message_callback(
-        self, topic: str, payload: str, properties: Optional[Dict[str, Any]]
-    ) -> None:
+    def _message_callback(self, topic: str, payload: str, properties: dict[str, Any] | None) -> None:
         """Handle incoming MQTT messages.
 
         Args:
@@ -50,23 +49,15 @@ class AsyncMqttClient:
             # This callback might be called from a different thread than the event loop
             try:
                 loop = asyncio.get_running_loop()
-                loop.call_soon_threadsafe(
-                    lambda: asyncio.create_task(
-                        self.message_queue.put((topic, payload))
-                    )
-                )
+                loop.call_soon_threadsafe(lambda: asyncio.create_task(self.message_queue.put((topic, payload))))
             except RuntimeError:
                 # No event loop running, use sync put_nowait
                 try:
                     self.message_queue.put_nowait((topic, payload))
                 except asyncio.QueueFull:
-                    self.logger.warning(
-                        f"Message queue full, dropping message from topic '{topic}'"
-                    )
+                    self.logger.warning(f"Message queue full, dropping message from topic '{topic}'")
         except Exception as e:
-            self.logger.error(
-                f"Error processing message from topic '{topic}': {str(e)}"
-            )
+            self.logger.error(f"Error processing message from topic '{topic}': {str(e)}")
 
     async def connect_and_subscribe(self) -> None:
         """Connect to the MQTT broker and subscribe to the specified topics.
@@ -83,9 +74,7 @@ class AsyncMqttClient:
 
             # Subscribe to all specified topics with our message callback
             for topic in self.topics:
-                success = await self.connection_manager.subscribe(
-                    topic, self._message_callback
-                )
+                success = await self.connection_manager.subscribe(topic, self._message_callback)
                 if success:
                     self.logger.info(f"Subscribed to topic: {topic}")
                 else:

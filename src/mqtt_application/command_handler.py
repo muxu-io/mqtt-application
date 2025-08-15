@@ -7,6 +7,7 @@ from enum import Enum
 from typing import Any, Dict, Optional
 
 from mqtt_logger import MqttLogger
+
 from .connection_manager import MqttConnectionManager
 
 
@@ -36,7 +37,8 @@ class AsyncCommandHandler:
     - Phase 1: Acknowledgment (received/error)
     - Phase 2: Completion status (completed/error)
 
-    Both phases can include error_code and error_msg fields for detailed error reporting.
+    Both phases can include error_code and error_msg fields for detailed error
+    reporting.
 
     Only processes topics following the pattern: icsia/<device_id>/cmd/*
     """
@@ -58,7 +60,8 @@ class AsyncCommandHandler:
             ack_topic_pattern (str): Topic pattern for acknowledgment messages.
             completion_topic_pattern (str): Topic pattern for completion messages.
             namespace (str): The MQTT topic namespace/prefix.
-            command_config (Dict[str, Any], optional): Command payload schemas from config.
+            command_config (Dict[str, Any], optional): Command payload schemas from
+                config.
         """
         self.logger = logger
         self.namespace = namespace
@@ -133,9 +136,7 @@ class AsyncCommandHandler:
                 error_code=MqttErrorCode.INVALID_PAYLOAD.value,
                 error_msg="Missing required field 'cmd_id'. Include cmd_id field in command payload.",
             )
-            self.logger.warning(
-                f"[CommandHandler] Missing required field 'cmd_id' from topic '{topic}'"
-            )
+            self.logger.warning(f"[CommandHandler] Missing required field 'cmd_id' from topic '{topic}'")
             await self._update_operational_status("error")
             return None
 
@@ -154,19 +155,17 @@ class AsyncCommandHandler:
                 "error",
                 command_timestamp,
                 error_code=MqttErrorCode.INVALID_PAYLOAD.value,
-                error_msg="Missing required field 'command'. Include command field in payload or specify command in topic.",
+                error_msg=(
+                    "Missing required field 'command'. Include command field in payload " "or specify command in topic."
+                ),
             )
-            self.logger.warning(
-                f"[CommandHandler] Cannot determine command from topic '{topic}' or payload"
-            )
+            self.logger.warning(f"[CommandHandler] Cannot determine command from topic '{topic}' or payload")
             await self._update_operational_status("error")
             return None
 
         return cmd_id, command_name
 
-    def _extract_command_info(
-        self, topic: str, data: Dict[str, Any]
-    ) -> tuple[str, str]:
+    def _extract_command_info(self, topic: str, data: Dict[str, Any]) -> tuple[str, str]:
         """Extract command information from topic and payload.
 
         Args:
@@ -181,15 +180,9 @@ class AsyncCommandHandler:
         # Generate timestamp when message is received and processed
         # This timestamp represents when the server received/processed the command
         # Note: Client-provided timestamps are ignored - server always generates its own
-        command_timestamp = (
-            datetime.now(timezone.utc)
-            .isoformat(timespec="milliseconds")
-            .replace("+00:00", "Z")
-        )
+        command_timestamp = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
         data["timestamp"] = command_timestamp
-        self.logger.debug(
-            f"Generated server timestamp for command: {command_timestamp}"
-        )
+        self.logger.debug(f"Generated server timestamp for command: {command_timestamp}")
 
         return device_id, command_timestamp
 
@@ -235,9 +228,7 @@ class AsyncCommandHandler:
             await self._update_operational_status("error")
             return None
 
-    def validate_command_payload(
-        self, command_name: str, payload: Dict[str, Any]
-    ) -> None:
+    def validate_command_payload(self, command_name: str, payload: Dict[str, Any]) -> None:
         """Validate command payload against its schema.
 
         If a field is defined in the schema, it's required (but defaults can be applied).
@@ -260,9 +251,7 @@ class AsyncCommandHandler:
         enriched_payload = self.apply_defaults(command_name, payload)
         self._validate_payload_structure(command_name, enriched_payload, schema)
 
-    def _validate_payload_structure(
-        self, command_name: str, payload: Dict[str, Any], schema: Dict[str, Any]
-    ) -> None:
+    def _validate_payload_structure(self, command_name: str, payload: Dict[str, Any], schema: Dict[str, Any]) -> None:
         """Validate payload structure against schema.
 
         Args:
@@ -285,24 +274,17 @@ class AsyncCommandHandler:
                     continue  # Skip optional fields
                 else:
                     # Get expected type/value for better error message
-                    if (
-                        isinstance(expected_config, dict)
-                        and "default" in expected_config
-                    ):
+                    if isinstance(expected_config, dict) and "default" in expected_config:
                         expected_hint = f"Expected type: {type(expected_config['default']).__name__}"
                     else:
-                        expected_hint = (
-                            f"Expected type: {type(expected_config).__name__}"
-                        )
+                        expected_hint = f"Expected type: {type(expected_config).__name__}"
 
                     raise CommandValidationError(
                         f"Command '{command_name}' missing required field '{field_name}'. {expected_hint}"
                     )
 
             # Validate field type and structure
-            self._validate_field_type(
-                f"{command_name}.{field_name}", payload[field_name], expected_config
-            )
+            self._validate_field_type(f"{command_name}.{field_name}", payload[field_name], expected_config)
 
     def _is_optional_field(self, expected_config: Any) -> bool:
         """Check if a field is explicitly marked as optional.
@@ -316,9 +298,7 @@ class AsyncCommandHandler:
         # Only fields with explicit {"default": value} syntax are optional
         return isinstance(expected_config, dict) and "default" in expected_config
 
-    def _validate_field_type(
-        self, field_path: str, field_value: Any, expected_config: Any
-    ) -> None:
+    def _validate_field_type(self, field_path: str, field_value: Any, expected_config: Any) -> None:
         """Validate that a field value matches the expected type from config.
 
         Args:
@@ -340,11 +320,7 @@ class AsyncCommandHandler:
         # Basic type validation with coercion for numeric types
         if not isinstance(field_value, expected_type):
             # Allow int/float coercion for numeric fields
-            if (
-                expected_type is int
-                and isinstance(field_value, float)
-                and field_value.is_integer()
-            ):
+            if expected_type is int and isinstance(field_value, float) and field_value.is_integer():
                 # Float that represents an integer (e.g., 100.0) - coerce to int
                 return
             elif expected_type is float and isinstance(field_value, int):
@@ -380,8 +356,7 @@ class AsyncCommandHandler:
         for key, expected_val in expected_structure.items():
             if key not in field_value:
                 raise CommandValidationError(
-                    f"Field '{field_path}' missing required key '{key}'. "
-                    f"Expected nested structure with key '{key}'"
+                    f"Field '{field_path}' missing required key '{key}'. " f"Expected nested structure with key '{key}'"
                 )
 
             actual_val = field_value[key]
@@ -389,13 +364,10 @@ class AsyncCommandHandler:
 
             if not isinstance(actual_val, expected_type):
                 raise CommandValidationError(
-                    f"Field '{field_path}.{key}' expected {expected_type.__name__}, "
-                    f"got {type(actual_val).__name__}"
+                    f"Field '{field_path}.{key}' expected {expected_type.__name__}, " f"got {type(actual_val).__name__}"
                 )
 
-    def apply_defaults(
-        self, command_name: str, payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def apply_defaults(self, command_name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Apply default values to command payload.
 
         Args:
@@ -451,20 +423,14 @@ class AsyncCommandHandler:
                 )
 
         if not self.connection_manager:
-            self.logger.warning(
-                "Cannot send acknowledgment: no MQTT connection manager configured"
-            )
+            self.logger.warning("Cannot send acknowledgment: no MQTT connection manager configured")
             return
 
-        ack_topic = self.ack_topic_pattern.format(
-            namespace=self.namespace, device_id=device_id
-        )
+        ack_topic = self.ack_topic_pattern.format(namespace=self.namespace, device_id=device_id)
         ack_data = {
             "cmd_id": cmd_id,
             "status": status,
-            "timestamp": datetime.now(timezone.utc)
-            .isoformat(timespec="milliseconds")
-            .replace("+00:00", "Z"),
+            "timestamp": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
         }
 
         # Include original command timestamp if provided
@@ -473,7 +439,12 @@ class AsyncCommandHandler:
 
         # Include error details if status is "error" (now guaranteed to be present)
         if status == "error":
-            assert error_code is not None and error_msg is not None  # Validated above
+            # These should never be None for error status due to validation above
+            if error_code is None or error_msg is None:
+                raise RuntimeError(
+                    f"Internal error: error_code and error_msg must be provided for error status. "
+                    f"Got error_code={error_code}, error_msg={error_msg}"
+                )
             ack_data["error_code"] = error_code
             ack_data["error_msg"] = error_msg
 
@@ -514,20 +485,14 @@ class AsyncCommandHandler:
                 )
 
         if not self.connection_manager:
-            self.logger.warning(
-                "Cannot send completion status: no MQTT connection manager configured"
-            )
+            self.logger.warning("Cannot send completion status: no MQTT connection manager configured")
             return
 
-        completion_topic = self.completion_topic_pattern.format(
-            namespace=self.namespace, device_id=device_id
-        )
+        completion_topic = self.completion_topic_pattern.format(namespace=self.namespace, device_id=device_id)
         completion_data = {
             "cmd_id": cmd_id,
             "status": status,
-            "timestamp": datetime.now(timezone.utc)
-            .isoformat(timespec="milliseconds")
-            .replace("+00:00", "Z"),
+            "timestamp": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
         }
 
         # Include original command timestamp if provided
@@ -536,19 +501,20 @@ class AsyncCommandHandler:
 
         # Include error details if status is "error" (now guaranteed to be present)
         if status == "error":
-            assert error_code is not None and error_msg is not None  # Validated above
+            # These should never be None for error status due to validation above
+            if error_code is None or error_msg is None:
+                raise RuntimeError(
+                    f"Internal error: error_code and error_msg must be provided for error status. "
+                    f"Got error_code={error_code}, error_msg={error_msg}"
+                )
             completion_data["error_code"] = error_code
             completion_data["error_msg"] = error_msg
 
         # Use connection manager's publish_with_retry method
         if hasattr(self.connection_manager, "publish_with_retry"):
-            await self.connection_manager.publish_with_retry(
-                completion_topic, completion_data, qos=1
-            )
+            await self.connection_manager.publish_with_retry(completion_topic, completion_data, qos=1)
         else:
-            await self.connection_manager.publish(
-                completion_topic, completion_data, qos=1
-            )
+            await self.connection_manager.publish(completion_topic, completion_data, qos=1)
 
     def extract_device_id_from_topic(self, topic: str) -> Optional[str]:
         """Extract device ID from topic following {namespace}/<device_id>/cmd/* pattern.
@@ -587,9 +553,7 @@ class AsyncCommandHandler:
 
         """
         if self._shutdown_requested:
-            self.logger.warning(
-                "Command handler is shutting down, ignoring new commands"
-            )
+            self.logger.warning("Command handler is shutting down, ignoring new commands")
             return
 
         device_id = self.extract_device_id_from_topic(topic)
@@ -604,9 +568,7 @@ class AsyncCommandHandler:
             device_id, command_timestamp = self._extract_command_info(topic, data)
 
             # Validate basic command structure (cmd_id and command_name)
-            validation_result = await self._validate_basic_command_structure(
-                data, topic, device_id, command_timestamp
-            )
+            validation_result = await self._validate_basic_command_structure(data, topic, device_id, command_timestamp)
             if validation_result is None:
                 return  # Validation failed, error already handled
 
@@ -617,9 +579,7 @@ class AsyncCommandHandler:
                 data["command"] = command_name
 
             # Phase 1: Send immediate acknowledgment (include original timestamp)
-            await self.send_acknowledgment(
-                device_id, cmd_id, "received", command_timestamp
-            )
+            await self.send_acknowledgment(device_id, cmd_id, "received", command_timestamp)
 
             if command_name in self.commands:
                 # Create a task for command execution tracking
@@ -641,9 +601,7 @@ class AsyncCommandHandler:
 
                     # Execute the command with validated data and track it
                     if asyncio.iscoroutinefunction(self.commands[command_name]):
-                        command_task = asyncio.create_task(
-                            self.commands[command_name](validated_data)
-                        )
+                        command_task = asyncio.create_task(self.commands[command_name](validated_data))
                         self._active_commands.add(command_task)
                         try:
                             await command_task
@@ -652,9 +610,7 @@ class AsyncCommandHandler:
                     else:
                         # Run sync commands in thread pool to avoid blocking
                         loop = asyncio.get_event_loop()
-                        command_future = loop.run_in_executor(
-                            None, self.commands[command_name], validated_data
-                        )
+                        command_future = loop.run_in_executor(None, self.commands[command_name], validated_data)
                         # Track the Future directly
                         self._active_commands.add(command_future)
                         try:
@@ -663,9 +619,7 @@ class AsyncCommandHandler:
                             self._active_commands.discard(command_future)
 
                     # Phase 2: Send completion status (include original timestamp)
-                    await self.send_completion_status(
-                        device_id, cmd_id, "completed", command_timestamp
-                    )
+                    await self.send_completion_status(device_id, cmd_id, "completed", command_timestamp)
 
                     # Update status publisher with success
                     if self.status_publisher:
@@ -689,9 +643,7 @@ class AsyncCommandHandler:
 
                     self.logger.error(f"Error executing command {command_name}: {e}")
             else:
-                self.logger.warning(
-                    f"[CommandHandler] Unknown command: '{command_name}' on topic '{topic}'"
-                )
+                self.logger.warning(f"[CommandHandler] Unknown command: '{command_name}' on topic '{topic}'")
 
                 # Phase 2: Send completion with error for unknown command
                 await self.send_completion_status(
@@ -700,22 +652,18 @@ class AsyncCommandHandler:
                     "error",
                     command_timestamp,
                     error_code=MqttErrorCode.UNKNOWN_COMMAND.value,
-                    error_msg=f"Unknown command '{command_name}'. Available commands: {', '.join(self.commands.keys())}",
+                    error_msg=(
+                        f"Unknown command '{command_name}'. " f"Available commands: {', '.join(self.commands.keys())}"
+                    ),
                 )
 
                 # Update status publisher with error for unknown command
                 await self._update_operational_status("error")
 
         except json.JSONDecodeError as e:
-            self.logger.error(
-                f"[CommandHandler] Invalid JSON payload on topic '{topic}': {payload}"
-            )
+            self.logger.error(f"[CommandHandler] Invalid JSON payload on topic '{topic}': {payload}")
             # Send acknowledgment with INVALID_JSON error code
-            error_timestamp = (
-                datetime.now(timezone.utc)
-                .isoformat(timespec="milliseconds")
-                .replace("+00:00", "Z")
-            )
+            error_timestamp = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
             await self.send_acknowledgment(
                 device_id,
                 "unknown",
@@ -732,11 +680,7 @@ class AsyncCommandHandler:
         except Exception as e:
             self.logger.error(f"[CommandHandler] Error handling command: {e}")
             # Send acknowledgment with error if possible (only if cmd_id is available)
-            error_timestamp = (
-                datetime.now(timezone.utc)
-                .isoformat(timespec="milliseconds")
-                .replace("+00:00", "Z")
-            )
+            error_timestamp = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
             try:
                 partial_data = json.loads(payload)
                 cmd_id = partial_data.get("cmd_id")
@@ -783,9 +727,7 @@ class AsyncCommandHandler:
                 return
             except Exception:
                 # Any other error, just log and update status
-                self.logger.error(
-                    "[CommandHandler] Failed to handle internal error properly"
-                )
+                self.logger.error("[CommandHandler] Failed to handle internal error properly")
                 await self._update_operational_status("error")
 
     async def shutdown(self, timeout: float = 10.0) -> None:
@@ -799,9 +741,7 @@ class AsyncCommandHandler:
 
         # Cancel any pending command executions
         if self._active_commands:
-            self.logger.info(
-                f"Waiting for {len(self._active_commands)} active commands to complete..."
-            )
+            self.logger.info(f"Waiting for {len(self._active_commands)} active commands to complete...")
 
             # Cancel all tasks/futures
             for command in list(self._active_commands):
@@ -811,16 +751,12 @@ class AsyncCommandHandler:
             # Wait for commands to complete or timeout
             try:
                 await asyncio.wait_for(
-                    asyncio.gather(
-                        *list(self._active_commands), return_exceptions=True
-                    ),
+                    asyncio.gather(*list(self._active_commands), return_exceptions=True),
                     timeout=timeout,
                 )
                 self.logger.info("All commands completed during shutdown")
             except asyncio.TimeoutError:
-                self.logger.warning(
-                    f"Some commands did not complete within {timeout}s shutdown timeout"
-                )
+                self.logger.warning(f"Some commands did not complete within {timeout}s shutdown timeout")
             finally:
                 self._active_commands.clear()
 
@@ -910,9 +846,7 @@ class AsyncCommandHandler:
         """
         component = data.get("component", "N/A")
         status = data.get("status", "N/A")
-        self.logger.info(
-            f"[Command] Reporting status for component '{component}': {status}"
-        )
+        self.logger.info(f"[Command] Reporting status for component '{component}': {status}")
 
         # Return system status
         return {
@@ -932,15 +866,11 @@ class AsyncCommandHandler:
             Dict containing the operation result.
         """
         delay = data.get("delay", 1)
-        self.logger.info(
-            f"[Command] Starting async operation with delay of {delay} seconds..."
-        )
+        self.logger.info(f"[Command] Starting async operation with delay of {delay} seconds...")
         start_time = asyncio.get_event_loop().time()
         await asyncio.sleep(delay)  # Simulate an I/O bound operation
         end_time = asyncio.get_event_loop().time()
-        self.logger.info(
-            f"[Command] Async operation completed after {end_time - start_time: .2f} seconds."
-        )
+        self.logger.info(f"[Command] Async operation completed after {end_time - start_time: .2f} seconds.")
 
         # Return operation result
         return {
