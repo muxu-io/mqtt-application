@@ -3,9 +3,10 @@
 import asyncio
 import json
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from typing import Any, Optional
 
 from mqtt_logger import MqttLogger
+
 from .connection_manager import MqttConnectionManager
 
 
@@ -37,7 +38,7 @@ class PeriodicStatusPublisher:
         enable_keepalive_publishing: bool = False,
         status_topic_pattern: str = "{namespace}/{device_id}/status/current",
         namespace: str = "icsia",
-        config_status_payload: Optional[Dict[str, Any]] = None,
+        config_status_payload: Optional[dict[str, Any]] = None,
     ) -> None:
         """Initialize the PeriodicStatusPublisher.
 
@@ -55,9 +56,7 @@ class PeriodicStatusPublisher:
         self.logger = logger
         self.publish_interval = publish_interval
         self.namespace = namespace
-        self.status_topic = status_topic_pattern.format(
-            namespace=namespace, device_id=device_id
-        )
+        self.status_topic = status_topic_pattern.format(namespace=namespace, device_id=device_id)
 
         # System state tracking
         self.operational_status = "idle"  # idle, busy, error
@@ -67,7 +66,7 @@ class PeriodicStatusPublisher:
 
         # Custom status payload support
         self.config_status_payload = config_status_payload or {}
-        self.custom_status_values: Dict[str, Any] = {}
+        self.custom_status_values: dict[str, Any] = {}
         self.status_payload_fields = self.config_status_payload
 
         # Use the provided connection manager
@@ -78,10 +77,10 @@ class PeriodicStatusPublisher:
         self.enable_change_only_publishing = True  # Always enabled for efficiency
         self.use_retained_messages = True  # Always enabled for on-demand access
         self.enable_keepalive_publishing = enable_keepalive_publishing  # Configurable
-        self._last_published_status: Optional[Dict[str, Any]] = None
+        self._last_published_status: Optional[dict[str, Any]] = None
         self._pending_immediate_publish = False
 
-    def update_status_payload(self, values: Dict[str, Any]) -> None:
+    def update_status_payload(self, values: dict[str, Any]) -> None:
         """Update the entire status payload with new values.
 
         Args:
@@ -101,7 +100,7 @@ class PeriodicStatusPublisher:
             self._pending_immediate_publish = True
             self.logger.debug("Status change detected, immediate publish triggered")
 
-    def _validate_status_payload(self, values: Dict[str, Any]) -> None:
+    def _validate_status_payload(self, values: dict[str, Any]) -> None:
         """Validate that status payload values match the config schema.
 
         Args:
@@ -123,9 +122,7 @@ class PeriodicStatusPublisher:
                     raise
             # Allow fields not in config for flexibility (as per current behavior)
 
-    def _validate_field_type(
-        self, field_name: str, field_value: Any, expected_config: Any
-    ) -> None:
+    def _validate_field_type(self, field_name: str, field_value: Any, expected_config: Any) -> None:
         """Validate that a field value matches the expected type from config.
 
         Args:
@@ -148,8 +145,7 @@ class PeriodicStatusPublisher:
         # Validate basic type compatibility
         if not isinstance(field_value, expected_type):
             raise StatusValidationError(
-                f"Field '{field_name}' expected {expected_type.__name__}, "
-                f"got {type(field_value).__name__}"
+                f"Field '{field_name}' expected {expected_type.__name__}, " f"got {type(field_value).__name__}"
             )
 
         # Additional validation for complex types
@@ -159,8 +155,8 @@ class PeriodicStatusPublisher:
     def _validate_dict_structure(
         self,
         field_name: str,
-        field_value: Dict[str, Any],
-        expected_structure: Dict[str, Any],
+        field_value: dict[str, Any],
+        expected_structure: dict[str, Any],
     ) -> None:
         """Validate that a dictionary field matches the expected structure.
 
@@ -175,9 +171,7 @@ class PeriodicStatusPublisher:
         # Check for required keys based on config structure
         for key, expected_val in expected_structure.items():
             if key not in field_value:
-                raise StatusValidationError(
-                    f"Field '{field_name}' missing required key '{key}'"
-                )
+                raise StatusValidationError(f"Field '{field_name}' missing required key '{key}'")
 
             # Recursively validate nested structures
             actual_val = field_value[key]
@@ -185,25 +179,22 @@ class PeriodicStatusPublisher:
 
             if not isinstance(actual_val, expected_type):
                 raise StatusValidationError(
-                    f"Field '{field_name}.{key}' expected {expected_type.__name__}, "
-                    f"got {type(actual_val).__name__}"
+                    f"Field '{field_name}.{key}' expected {expected_type.__name__}, " f"got {type(actual_val).__name__}"
                 )
 
-    def _build_status_payload(self) -> Dict[str, Any]:
+    def _build_status_payload(self) -> dict[str, Any]:
         """Build the complete status payload using config fields and current values."""
         # Start with default operational status
         status_data = {
             "operational_status": self.operational_status,
-            "timestamp": datetime.now(timezone.utc)
-            .isoformat(timespec="milliseconds")
-            .replace("+00:00", "Z"),
+            "timestamp": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
         }
 
         # Add last_command_time if available
         if self.last_command_time:
-            status_data["last_command_time"] = self.last_command_time.isoformat(
-                timespec="milliseconds"
-            ).replace("+00:00", "Z")
+            status_data["last_command_time"] = self.last_command_time.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            )
 
         # Add custom fields from config
         for field_name, field_config in self.status_payload_fields.items():
@@ -238,9 +229,7 @@ class PeriodicStatusPublisher:
             # Trigger immediate publish for significant status changes
             if old_status != status:
                 self._pending_immediate_publish = True
-                self.logger.debug(
-                    "Operational status change detected, immediate publish triggered"
-                )
+                self.logger.debug("Operational status change detected, immediate publish triggered")
         else:
             self.logger.warning(f"Invalid operational status: {status}")
 
@@ -249,7 +238,7 @@ class PeriodicStatusPublisher:
         self.last_command_time = datetime.now(timezone.utc)
         self.logger.debug("Last command time updated")
 
-    def _status_changed(self, current_status: Dict[str, Any]) -> bool:
+    def _status_changed(self, current_status: dict[str, Any]) -> bool:
         """Check if the current status differs from the last published status.
 
         Args:
@@ -262,12 +251,8 @@ class PeriodicStatusPublisher:
             return True  # Always publish the first status
 
         # Compare status excluding timestamp (which always changes)
-        current_without_timestamp = {
-            k: v for k, v in current_status.items() if k != "timestamp"
-        }
-        last_without_timestamp = {
-            k: v for k, v in self._last_published_status.items() if k != "timestamp"
-        }
+        current_without_timestamp = {k: v for k, v in current_status.items() if k != "timestamp"}
+        last_without_timestamp = {k: v for k, v in self._last_published_status.items() if k != "timestamp"}
 
         return current_without_timestamp != last_without_timestamp
 
@@ -323,9 +308,7 @@ class PeriodicStatusPublisher:
             self._pending_immediate_publish = False
 
             retention_info = " (retained)" if self.use_retained_messages else ""
-            self.logger.debug(
-                f"Status published to {self.status_topic}{retention_info}: {json.dumps(status_data)}"
-            )
+            self.logger.debug(f"Status published to {self.status_topic}{retention_info}: {json.dumps(status_data)}")
 
         except Exception as e:
             self.logger.error(f"Error publishing status: {str(e)}")
@@ -347,9 +330,7 @@ class PeriodicStatusPublisher:
 
         feature_str = f" ({', '.join(features)})" if features else ""
 
-        self.logger.info(
-            f"Status publisher started for device {self.device_id}{feature_str}"
-        )
+        self.logger.info(f"Status publisher started for device {self.device_id}{feature_str}")
 
         # Always publish initial status
         await self._publish_status(force=True)

@@ -1,16 +1,17 @@
 """Integration tests demonstrating how external applications would use the mqtt_application module."""
 
 import asyncio
-import pytest
-import tempfile
 import os
+import tempfile
+
+import pytest
 import yaml
 
 from mqtt_application import (
-    MqttApplication,
     AppConfig,
-    AsyncMqttClient,
     AsyncCommandHandler,
+    AsyncMqttClient,
+    MqttApplication,
     MqttConnectionManager,
     PeriodicStatusPublisher,
 )
@@ -23,10 +24,10 @@ class TestMqttApplicationModule:
         """Test that all main components can be imported from the module."""
         # Test that all main classes are available
         from mqtt_application import (
-            MqttApplication,
-            AsyncMqttClient,
-            MqttConnectionManager,
             AppConfig,
+            AsyncMqttClient,
+            MqttApplication,
+            MqttConnectionManager,
             async_worker,
             create_worker_pool,
         )
@@ -177,13 +178,14 @@ class TestMqttApplicationModule:
             assert "motion_command" in app._custom_commands
 
             # Verify component types (what external apps would expect)
+            from mqtt_logger import MqttLogger
+
             from mqtt_application import (
                 AsyncCommandHandler,
                 AsyncMqttClient,
                 MqttConnectionManager,
                 PeriodicStatusPublisher,
             )
-            from mqtt_logger import MqttLogger
 
             assert isinstance(app.logger, MqttLogger)
             assert isinstance(app.connection_manager, MqttConnectionManager)

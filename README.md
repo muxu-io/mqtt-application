@@ -15,7 +15,7 @@ A comprehensive asynchronous MQTT client library for Python, designed for buildi
 ## Installation
 
 ```bash
-pip install mqtt-application
+pip install muxu-io-mqtt-application
 ```
 
 ## Installation from Source

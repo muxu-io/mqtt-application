@@ -4,22 +4,23 @@ import asyncio
 import os
 import signal
 import sys
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
+
+from mqtt_logger import MqttLogger
 
 from .command_handler import AsyncCommandHandler
-from .mqtt_client import AsyncMqttClient
-from .connection_manager import MqttConnectionManager
-from .status_publisher import PeriodicStatusPublisher
 from .config import AppConfig
+from .connection_manager import MqttConnectionManager
+from .mqtt_client import AsyncMqttClient
+from .status_publisher import PeriodicStatusPublisher
 from .worker import create_worker_pool
-from mqtt_logger import MqttLogger
 
 
 class MqttApplication:
-    """Simplified MQTT application that handles all component initialization and lifecycle management.
+    """Simplified MQTT application that handles all component initialization and lifecycle.
 
-    This class provides a simple interface for creating MQTT applications by reading configuration
-    from config.yaml and automatically setting up all necessary components.
+    This class provides a simple interface for creating MQTT applications by reading
+    configuration from config.yaml and automatically setting up all components.
 
     Example:
         Basic usage:
@@ -44,7 +45,7 @@ class MqttApplication:
     def __init__(
         self,
         config_file: Optional[str] = None,
-        config_override: Optional[Dict[str, Any]] = None,
+        config_override: Optional[dict[str, Any]] = None,
         callback_context: Optional[Any] = None,
     ):
         """Initialize the MQTT application.
@@ -52,16 +53,15 @@ class MqttApplication:
         Args:
             config_file: Path to config file (defaults to config.yaml)
             config_override: Override configuration values
-            callback_context: Object that contains callback methods referenced in config (defaults to self)
+            callback_context: Object that contains callback methods referenced in config
+                              (defaults to self)
         """
         self.config_file = config_file
         self.config_override = config_override or {}
-        self._callback_context = (
-            callback_context if callback_context is not None else self
-        )
+        self._callback_context = callback_context if callback_context is not None else self
 
         # Components (initialized in __aenter__)
-        self.app_config: Dict[str, Any] = {}
+        self.app_config: dict[str, Any] = {}
         self.logger: Optional[MqttLogger] = None
         self.connection_manager: Optional[MqttConnectionManager] = None
         self.command_handler: Optional[AsyncCommandHandler] = None
@@ -72,10 +72,10 @@ class MqttApplication:
         self.mqtt_task: Optional[asyncio.Task] = None
 
         # Custom command handlers
-        self._custom_commands: Dict[str, Callable] = {}
+        self._custom_commands: dict[str, Callable] = {}
 
         # Custom callback handlers for subscriptions
-        self._callback_handlers: Dict[str, Callable] = {}
+        self._callback_handlers: dict[str, Callable] = {}
 
         # Running state
         self._running = False
@@ -107,7 +107,7 @@ class MqttApplication:
         """
         self._callback_handlers[method_name] = handler
 
-    def update_status(self, values: Dict[str, Any]) -> None:
+    def update_status(self, values: dict[str, Any]) -> None:
         """Update the status payload with current system values.
 
         Args:
@@ -121,16 +121,12 @@ class MqttApplication:
             self.status_publisher.update_status_payload(values)
         else:
             if self.logger:
-                self.logger.warning(
-                    "Cannot update status: status publisher not initialized"
-                )
+                self.logger.warning("Cannot update status: status publisher not initialized")
 
     async def run(self):
         """Run the application until interrupted."""
         if not self.logger:
-            raise RuntimeError(
-                "Application not initialized. Use 'async with MqttApplication():'"
-            )
+            raise RuntimeError("Application not initialized. Use 'async with MqttApplication():'")
 
         self._running = True
         self.logger.info("Starting MQTT application...")
@@ -200,12 +196,14 @@ class MqttApplication:
                 self.connection_manager.register_callback(topic_pattern, callback_func)
                 if self.logger:
                     self.logger.info(
-                        f"Registered callback '{callback_method_name}' for topic pattern '{topic_pattern}' (subscription: {subscription_name})"
+                        f"Registered callback '{callback_method_name}' "
+                        f"for topic pattern '{topic_pattern}' (subscription: {subscription_name})"
                     )
             else:
                 if self.logger:
                     self.logger.warning(
-                        f"Could not resolve callback method '{callback_method_name}' for subscription '{subscription_name}'"
+                        f"Could not resolve callback method '{callback_method_name}' "
+                        f"for subscription '{subscription_name}'"
                     )
 
     def _resolve_callback_method(self, method_name: str) -> Optional[Callable]:
@@ -234,7 +232,7 @@ class MqttApplication:
         if self.logger:
             await self.logger.__aexit__(None, None, None)
 
-    def _create_app_config(self) -> Dict[str, Any]:
+    def _create_app_config(self) -> dict[str, Any]:
         """Create application configuration with defaults and overrides."""
         # Create config instance with custom file if specified
         app_config_instance = AppConfig.from_file(self.config_file or "config.yaml")
@@ -266,7 +264,7 @@ class MqttApplication:
             "command": f"{final_namespace}/{final_device_id}/cmd/#",
             "log": f"{final_namespace}/{final_device_id}/logs",
             "status_ack": f"{final_namespace}/{final_device_id}/status/ack",
-            "status_completion": f"{final_namespace}/{final_device_id}/status/completion",
+            "status_completion": (f"{final_namespace}/{final_device_id}/status/completion"),
             "status_current": f"{final_namespace}/{final_device_id}/status/current",
         }
 
@@ -288,8 +286,7 @@ class MqttApplication:
             reconnect_interval=self.app_config["mqtt"]["reconnect_interval"],
             max_reconnect_attempts=self.app_config["mqtt"]["max_reconnect_attempts"],
             throttle_interval=self.app_config["mqtt"]["throttle_interval"],
-            enable_stdout=os.environ.get("MQTT_LOGGER_ENABLE_STDOUT", "false").lower()
-            in ("true", "1", "yes", "on"),
+            enable_stdout=os.environ.get("MQTT_LOGGER_ENABLE_STDOUT", "false").lower() in ("true", "1", "yes", "on"),
         )
 
     async def _create_components(self):
@@ -327,9 +324,7 @@ class MqttApplication:
             status_topic_pattern=self.app_config["topics"]["status_current"],
             connection_manager=self.connection_manager,
             config_status_payload=self.app_config["status_payload"],
-            enable_keepalive_publishing=self.app_config.get(
-                "enable_keepalive_publishing", False
-            ),
+            enable_keepalive_publishing=self.app_config.get("enable_keepalive_publishing", False),
         )
 
         # Link command handler with status publisher
@@ -356,9 +351,7 @@ class MqttApplication:
 
         # Start MQTT client
         if self.mqtt_client:
-            self.mqtt_task = asyncio.create_task(
-                self.mqtt_client.connect_and_subscribe(), name="mqtt-application"
-            )
+            self.mqtt_task = asyncio.create_task(self.mqtt_client.connect_and_subscribe(), name="mqtt-application")
 
         # Start worker pool
         if self.message_queue and self.command_handler:
@@ -390,26 +383,18 @@ class MqttApplication:
             task.cancel()
 
         # Wait for tasks to complete
-        all_tasks = (
-            [self.mqtt_task] + self.worker_tasks
-            if self.mqtt_task
-            else self.worker_tasks
-        )
+        all_tasks = [self.mqtt_task] + self.worker_tasks if self.mqtt_task else self.worker_tasks
         if all_tasks:
             await asyncio.gather(*all_tasks, return_exceptions=True)
 
         self.logger.info("Application stopped")
 
     @staticmethod
-    def _merge_config(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    def _merge_config(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
         """Recursively merge configuration dictionaries."""
         result = base.copy()
         for key, value in override.items():
-            if (
-                isinstance(value, dict)
-                and key in result
-                and isinstance(result[key], dict)
-            ):
+            if isinstance(value, dict) and key in result and isinstance(result[key], dict):
                 result[key] = MqttApplication._merge_config(result[key], value)
             else:
                 result[key] = value
@@ -419,7 +404,7 @@ class MqttApplication:
     def run_from_config(
         cls,
         config_file: Optional[str] = None,
-        config_override: Optional[Dict[str, Any]] = None,
+        config_override: Optional[dict[str, Any]] = None,
     ):
         """Run the application directly from configuration (convenience method).
 
