@@ -4,7 +4,7 @@ import inspect
 import logging
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import yaml
 
@@ -89,7 +89,7 @@ class AppConfig:
     topics: TopicsConfig = field(default_factory=TopicsConfig)
     logger: LoggerConfig = field(default_factory=LoggerConfig)
     workers: WorkersConfig = field(default_factory=WorkersConfig)
-    subscriptions: Dict[str, SubscriptionConfig] = field(default_factory=dict)
+    subscriptions: dict[str, SubscriptionConfig] = field(default_factory=dict)
 
     @classmethod
     def _find_main_script(cls) -> Optional[str]:
@@ -131,7 +131,7 @@ class AppConfig:
         return config_file
 
     @classmethod
-    def _load_yaml_config(cls, config_file: str, base_dir: Optional[str] = None) -> tuple[Dict[str, Any], str]:
+    def _load_yaml_config(cls, config_file: str, base_dir: Optional[str] = None) -> tuple[dict[str, Any], str]:
         """Load YAML config file and return data with original filename."""
         original_config_file = config_file
         resolved_config_file = cls._resolve_config_path(config_file, base_dir)
@@ -149,13 +149,13 @@ class AppConfig:
             )
             return {}, original_config_file
 
-    def _apply_simple_section(self, target_obj: Any, section_data: Dict[str, Any]) -> None:
+    def _apply_simple_section(self, target_obj: Any, section_data: dict[str, Any]) -> None:
         """Apply a simple key-value section to a target object."""
         for key, value in section_data.items():
             if hasattr(target_obj, key):
                 setattr(target_obj, key, value)
 
-    def _apply_topics_section(self, section_data: Dict[str, Any]) -> None:
+    def _apply_topics_section(self, section_data: dict[str, Any]) -> None:
         """Apply the topics section with special handling for nested status topics."""
         for key, value in section_data.items():
             if key == "status" and isinstance(value, dict):
@@ -167,7 +167,7 @@ class AppConfig:
             elif hasattr(self.topics, key):
                 setattr(self.topics, key, value)
 
-    def _apply_subscriptions_section(self, section_data: Dict[str, Any]) -> None:
+    def _apply_subscriptions_section(self, section_data: dict[str, Any]) -> None:
         """Apply the subscriptions section to create SubscriptionConfig objects."""
         for subscription_name, subscription_data in section_data.items():
             if isinstance(subscription_data, dict):
@@ -197,7 +197,7 @@ class AppConfig:
             if section_name in target_map:
                 self._apply_simple_section(target_map[section_name], section_data)
 
-    def _merge_config_sections(self, config_data: Dict[str, Any]) -> None:
+    def _merge_config_sections(self, config_data: dict[str, Any]) -> None:
         """Apply all configuration sections to the app config."""
         for section_name, section_data in config_data.items():
             self._apply_config_section(section_name, section_data)
@@ -264,7 +264,7 @@ class AppConfig:
         }
         return level_map.get(self.logger.log_level.upper(), logging.INFO)
 
-    def get_mqtt_config(self) -> Dict[str, Any]:
+    def get_mqtt_config(self) -> dict[str, Any]:
         """Get MQTT configuration in the format expected by the application."""
         return {
             "mqtt_broker": self.mqtt.broker,

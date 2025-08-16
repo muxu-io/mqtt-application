@@ -3,7 +3,7 @@
 import asyncio
 import json
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from mqtt_logger import MqttLogger
 
@@ -38,7 +38,7 @@ class PeriodicStatusPublisher:
         enable_keepalive_publishing: bool = False,
         status_topic_pattern: str = "{namespace}/{device_id}/status/current",
         namespace: str = "icsia",
-        config_status_payload: Optional[Dict[str, Any]] = None,
+        config_status_payload: Optional[dict[str, Any]] = None,
     ) -> None:
         """Initialize the PeriodicStatusPublisher.
 
@@ -66,7 +66,7 @@ class PeriodicStatusPublisher:
 
         # Custom status payload support
         self.config_status_payload = config_status_payload or {}
-        self.custom_status_values: Dict[str, Any] = {}
+        self.custom_status_values: dict[str, Any] = {}
         self.status_payload_fields = self.config_status_payload
 
         # Use the provided connection manager
@@ -77,10 +77,10 @@ class PeriodicStatusPublisher:
         self.enable_change_only_publishing = True  # Always enabled for efficiency
         self.use_retained_messages = True  # Always enabled for on-demand access
         self.enable_keepalive_publishing = enable_keepalive_publishing  # Configurable
-        self._last_published_status: Optional[Dict[str, Any]] = None
+        self._last_published_status: Optional[dict[str, Any]] = None
         self._pending_immediate_publish = False
 
-    def update_status_payload(self, values: Dict[str, Any]) -> None:
+    def update_status_payload(self, values: dict[str, Any]) -> None:
         """Update the entire status payload with new values.
 
         Args:
@@ -100,7 +100,7 @@ class PeriodicStatusPublisher:
             self._pending_immediate_publish = True
             self.logger.debug("Status change detected, immediate publish triggered")
 
-    def _validate_status_payload(self, values: Dict[str, Any]) -> None:
+    def _validate_status_payload(self, values: dict[str, Any]) -> None:
         """Validate that status payload values match the config schema.
 
         Args:
@@ -155,8 +155,8 @@ class PeriodicStatusPublisher:
     def _validate_dict_structure(
         self,
         field_name: str,
-        field_value: Dict[str, Any],
-        expected_structure: Dict[str, Any],
+        field_value: dict[str, Any],
+        expected_structure: dict[str, Any],
     ) -> None:
         """Validate that a dictionary field matches the expected structure.
 
@@ -182,7 +182,7 @@ class PeriodicStatusPublisher:
                     f"Field '{field_name}.{key}' expected {expected_type.__name__}, " f"got {type(actual_val).__name__}"
                 )
 
-    def _build_status_payload(self) -> Dict[str, Any]:
+    def _build_status_payload(self) -> dict[str, Any]:
         """Build the complete status payload using config fields and current values."""
         # Start with default operational status
         status_data = {
@@ -238,7 +238,7 @@ class PeriodicStatusPublisher:
         self.last_command_time = datetime.now(timezone.utc)
         self.logger.debug("Last command time updated")
 
-    def _status_changed(self, current_status: Dict[str, Any]) -> bool:
+    def _status_changed(self, current_status: dict[str, Any]) -> bool:
         """Check if the current status differs from the last published status.
 
         Args:

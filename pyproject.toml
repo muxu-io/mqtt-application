@@ -13,14 +13,13 @@ authors = [
     {name = "Alex Gonzalez", email = "alex@muxu.io"},
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {text = "MIT"}
 keywords = ["mqtt", "async", "iot", "messaging", "client"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -63,7 +62,7 @@ testing = [
 
 [tool.black]
 line-length = 120  # Increased to accommodate error messages and logging
-target-version = ['py38']
+target-version = ['py39']
 
 [tool.mypy]
 python_version = "3.9"
@@ -73,7 +72,7 @@ disallow_untyped_defs = true
 
 [tool.ruff]
 line-length = 120  # Increased to accommodate error messages and logging
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
 select = [

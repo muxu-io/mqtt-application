@@ -4,7 +4,7 @@ import asyncio
 import json
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from mqtt_logger import MqttLogger
 
@@ -50,7 +50,7 @@ class AsyncCommandHandler:
         ack_topic_pattern: str = "{namespace}/{device_id}/status/ack",
         completion_topic_pattern: str = "{namespace}/{device_id}/status/completion",
         namespace: str = "icsia",
-        command_config: Optional[Dict[str, Any]] = None,
+        command_config: Optional[dict[str, Any]] = None,
     ) -> None:
         """Initialize the AsyncCommandHandler with a dictionary of command mappings.
 
@@ -110,7 +110,7 @@ class AsyncCommandHandler:
                 self.status_publisher.set_operational_status(status)
 
     async def _validate_basic_command_structure(
-        self, data: Dict[str, Any], topic: str, device_id: str, command_timestamp: str
+        self, data: dict[str, Any], topic: str, device_id: str, command_timestamp: str
     ) -> Optional[tuple[str, str]]:
         """Validate basic command structure and return cmd_id and command_name.
 
@@ -165,7 +165,7 @@ class AsyncCommandHandler:
 
         return cmd_id, command_name
 
-    def _extract_command_info(self, topic: str, data: Dict[str, Any]) -> tuple[str, str]:
+    def _extract_command_info(self, topic: str, data: dict[str, Any]) -> tuple[str, str]:
         """Extract command information from topic and payload.
 
         Args:
@@ -189,11 +189,11 @@ class AsyncCommandHandler:
     async def _validate_command_payload_safe(
         self,
         command_name: str,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         cmd_id: str,
         device_id: str,
         command_timestamp: str,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[dict[str, Any]]:
         """Safely validate command payload and apply defaults.
 
         Args:
@@ -228,7 +228,7 @@ class AsyncCommandHandler:
             await self._update_operational_status("error")
             return None
 
-    def validate_command_payload(self, command_name: str, payload: Dict[str, Any]) -> None:
+    def validate_command_payload(self, command_name: str, payload: dict[str, Any]) -> None:
         """Validate command payload against its schema.
 
         If a field is defined in the schema, it's required (but defaults can be applied).
@@ -251,7 +251,7 @@ class AsyncCommandHandler:
         enriched_payload = self.apply_defaults(command_name, payload)
         self._validate_payload_structure(command_name, enriched_payload, schema)
 
-    def _validate_payload_structure(self, command_name: str, payload: Dict[str, Any], schema: Dict[str, Any]) -> None:
+    def _validate_payload_structure(self, command_name: str, payload: dict[str, Any], schema: dict[str, Any]) -> None:
         """Validate payload structure against schema.
 
         Args:
@@ -340,8 +340,8 @@ class AsyncCommandHandler:
     def _validate_dict_structure(
         self,
         field_path: str,
-        field_value: Dict[str, Any],
-        expected_structure: Dict[str, Any],
+        field_value: dict[str, Any],
+        expected_structure: dict[str, Any],
     ) -> None:
         """Validate nested dictionary structure.
 
@@ -367,7 +367,7 @@ class AsyncCommandHandler:
                     f"Field '{field_path}.{key}' expected {expected_type.__name__}, " f"got {type(actual_val).__name__}"
                 )
 
-    def apply_defaults(self, command_name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def apply_defaults(self, command_name: str, payload: dict[str, Any]) -> dict[str, Any]:
         """Apply default values to command payload.
 
         Args:
@@ -796,7 +796,7 @@ class AsyncCommandHandler:
 
     # --- Example Command Functions (can be sync or async) ---
 
-    def start_task(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def start_task(self, data: dict[str, Any]) -> dict[str, Any]:
         """Start a task.
 
         Args:
@@ -816,7 +816,7 @@ class AsyncCommandHandler:
             "timestamp": asyncio.get_event_loop().time(),
         }
 
-    def stop_task(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def stop_task(self, data: dict[str, Any]) -> dict[str, Any]:
         """Stop a task.
 
         Args:
@@ -835,7 +835,7 @@ class AsyncCommandHandler:
             "timestamp": asyncio.get_event_loop().time(),
         }
 
-    def report_status(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def report_status(self, data: dict[str, Any]) -> dict[str, Any]:
         """Report status.
 
         Args:
@@ -856,7 +856,7 @@ class AsyncCommandHandler:
             "uptime": asyncio.get_event_loop().time(),
         }
 
-    async def perform_async_operation(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def perform_async_operation(self, data: dict[str, Any]) -> dict[str, Any]:
         """Simulate an async operation.
 
         Args:

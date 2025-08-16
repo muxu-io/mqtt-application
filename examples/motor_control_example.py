@@ -11,7 +11,7 @@ as the motor system state changes.
 import asyncio
 import random
 import time
-from typing import Any, Dict
+from typing import Any
 
 from mqtt_application import MqttApplication
 
@@ -81,7 +81,7 @@ class MotorControlApp:
                 f"Moving={self.is_moving}, Temp={self.temperature: .1f}°C"
             )
 
-    async def _move_command(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _move_command(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle move command according to Motor Control API.
 
         Payload is automatically validated against the schema defined in config.yaml.
@@ -133,7 +133,7 @@ class MotorControlApp:
             self._update_system_status()
             raise
 
-    async def _home_command(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _home_command(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle home command according to Motor Control API.
 
         Payload is automatically validated against the schema defined in config.yaml.
@@ -175,7 +175,7 @@ class MotorControlApp:
             self._update_system_status()
             raise
 
-    async def _stop_command(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _stop_command(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle stop command according to Motor Control API."""
         if self.app.logger:
             self.app.logger.warning("Emergency stop activated")
@@ -185,7 +185,7 @@ class MotorControlApp:
 
         return {"stopped": True, "final_position": self.current_position.copy()}
 
-    async def _set_speed_command(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _set_speed_command(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle set_speed command according to Motor Control API.
 
         Payload is automatically validated against the schema defined in config.yaml.
@@ -214,7 +214,7 @@ class MotorControlApp:
             self._update_system_status()
             raise
 
-    async def _get_position_command(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _get_position_command(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle get_position command - returns current motor state."""
         self._update_system_status()
 

@@ -4,7 +4,7 @@ import asyncio
 import os
 import signal
 import sys
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 from mqtt_logger import MqttLogger
 
@@ -45,7 +45,7 @@ class MqttApplication:
     def __init__(
         self,
         config_file: Optional[str] = None,
-        config_override: Optional[Dict[str, Any]] = None,
+        config_override: Optional[dict[str, Any]] = None,
         callback_context: Optional[Any] = None,
     ):
         """Initialize the MQTT application.
@@ -61,7 +61,7 @@ class MqttApplication:
         self._callback_context = callback_context if callback_context is not None else self
 
         # Components (initialized in __aenter__)
-        self.app_config: Dict[str, Any] = {}
+        self.app_config: dict[str, Any] = {}
         self.logger: Optional[MqttLogger] = None
         self.connection_manager: Optional[MqttConnectionManager] = None
         self.command_handler: Optional[AsyncCommandHandler] = None
@@ -72,10 +72,10 @@ class MqttApplication:
         self.mqtt_task: Optional[asyncio.Task] = None
 
         # Custom command handlers
-        self._custom_commands: Dict[str, Callable] = {}
+        self._custom_commands: dict[str, Callable] = {}
 
         # Custom callback handlers for subscriptions
-        self._callback_handlers: Dict[str, Callable] = {}
+        self._callback_handlers: dict[str, Callable] = {}
 
         # Running state
         self._running = False
@@ -107,7 +107,7 @@ class MqttApplication:
         """
         self._callback_handlers[method_name] = handler
 
-    def update_status(self, values: Dict[str, Any]) -> None:
+    def update_status(self, values: dict[str, Any]) -> None:
         """Update the status payload with current system values.
 
         Args:
@@ -232,7 +232,7 @@ class MqttApplication:
         if self.logger:
             await self.logger.__aexit__(None, None, None)
 
-    def _create_app_config(self) -> Dict[str, Any]:
+    def _create_app_config(self) -> dict[str, Any]:
         """Create application configuration with defaults and overrides."""
         # Create config instance with custom file if specified
         app_config_instance = AppConfig.from_file(self.config_file or "config.yaml")
@@ -390,7 +390,7 @@ class MqttApplication:
         self.logger.info("Application stopped")
 
     @staticmethod
-    def _merge_config(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    def _merge_config(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
         """Recursively merge configuration dictionaries."""
         result = base.copy()
         for key, value in override.items():
@@ -404,7 +404,7 @@ class MqttApplication:
     def run_from_config(
         cls,
         config_file: Optional[str] = None,
-        config_override: Optional[Dict[str, Any]] = None,
+        config_override: Optional[dict[str, Any]] = None,
     ):
         """Run the application directly from configuration (convenience method).
 

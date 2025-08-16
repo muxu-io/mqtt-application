@@ -1,7 +1,8 @@
 import asyncio
 import os
 import sys
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Awaitable
+from typing import Any, Callable, Optional, Union
 
 from mqtt_connector import MqttConnector
 from mqtt_logger import MqttLogger
@@ -51,7 +52,7 @@ class MqttConnectionManager:
         self._connector.set_log_callback(self._handle_connector_log)
 
         # Track message callbacks for different topics
-        self._message_callbacks: Dict[str, Callable] = {}
+        self._message_callbacks: dict[str, Callable] = {}
         self._subscribed_topics = set()
 
     @property
@@ -177,7 +178,7 @@ class MqttConnectionManager:
                     )
         return connected
 
-    def _global_message_callback(self, topic: str, payload: str) -> None:
+    async def _global_message_callback(self, topic: str, payload: str) -> None:
         """Global message callback that dispatches to registered topic callbacks.
 
         Args:
@@ -186,27 +187,13 @@ class MqttConnectionManager:
         """
         # Find matching callback(s) for this topic
         for topic_pattern, callback in self._message_callbacks.items():
-            match_result = self._topic_matches(topic, topic_pattern)
-            if match_result:
+            if self._topic_matches(topic, topic_pattern):
                 try:
                     # Check if callback is async and handle appropriately
                     import inspect
 
                     if inspect.iscoroutinefunction(callback):
-                        # Schedule async callback to run in the event loop
-                        import asyncio
-
-                        if self._event_loop and self._event_loop.is_running():
-                            asyncio.run_coroutine_threadsafe(callback(topic, payload, None), self._event_loop)
-                        else:
-                            # Try to find a running event loop
-                            try:
-                                loop = asyncio.get_running_loop()
-                                loop.create_task(callback(topic, payload, None))
-                            except RuntimeError:
-                                self.logger.error(
-                                    f"Cannot run async callback {callback.__name__} - no event loop available"
-                                )
+                        await callback(topic, payload, None)
                     else:
                         callback(topic, payload, None)
                 except Exception as e:
@@ -218,7 +205,14 @@ class MqttConnectionManager:
         self._subscribed_topics.clear()
         self._message_callbacks.clear()
 
-    async def subscribe(self, topic: str, callback: Callable[[str, str, Optional[Dict[str, Any]]], None]) -> bool:
+    async def subscribe(
+        self,
+        topic: str,
+        callback: Union[
+            Callable[[str, str, Optional[dict[str, Any]]], None],
+            Callable[[str, str, Optional[dict[str, Any]]], Awaitable[None]],
+        ],
+    ) -> bool:
         """Subscribe to a topic with a callback.
 
         Args:
@@ -250,7 +244,7 @@ class MqttConnectionManager:
             self.logger.info(f"Already subscribed to topic: {topic}")
             return True
 
-    def get_registered_callbacks(self) -> Dict[str, Callable]:
+    def get_registered_callbacks(self) -> dict[str, Callable]:
         """Return a copy of the registered topic callbacks."""
         return dict(self._message_callbacks)
 
@@ -353,7 +347,10 @@ class MqttConnectionManager:
     def register_callback(
         self,
         topic_pattern: str,
-        callback: Callable[[str, str, Optional[Dict[str, Any]]], None],
+        callback: Union[
+            Callable[[str, str, Optional[dict[str, Any]]], None],
+            Callable[[str, str, Optional[dict[str, Any]]], Awaitable[None]],
+        ],
     ) -> None:
         """
         Register a callback for a topic pattern and automatically subscribe to the topic if not already subscribed.
