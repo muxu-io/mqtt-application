@@ -34,7 +34,12 @@ from .mqtt_client import AsyncMqttClient
 from .status_publisher import PeriodicStatusPublisher, StatusValidationError
 from .worker import async_worker, create_worker_pool
 
-__version__ = "0.1.0"
+try:
+    import importlib.metadata
+
+    __version__ = importlib.metadata.version("muxu-io-mqtt-application")
+except (importlib.metadata.PackageNotFoundError, ImportError):
+    __version__ = "unknown"
 __author__ = "Alex Gonzalez"
 __email__ = "alex@muxu.io"
 __description__ = "A comprehensive asynchronous MQTT application framework"
