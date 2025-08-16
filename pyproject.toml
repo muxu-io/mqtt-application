@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "muxu-io-mqtt-application"
-version = "0.1.0"
+version = "1.0.0"
 description = "A comprehensive asynchronous MQTT application library"
 authors = [
     {name = "Alex Gonzalez", email = "alex@muxu.io"},
