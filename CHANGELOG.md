@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.3 (2025-08-16)
+
+### Bug Fixes
+
+- Use version information from pyproject
+  ([`cf35b44`](https://github.com/muxu-io/mqtt-application/commit/cf35b44dc139ae66e96c593b8d9cf6b613d6dff3))
+
+
 ## v1.0.2 (2025-08-16)
 
 ### Bug Fixes
