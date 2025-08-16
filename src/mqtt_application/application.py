@@ -128,8 +128,12 @@ class MqttApplication:
         if not self.logger:
             raise RuntimeError("Application not initialized. Use 'async with MqttApplication():'")
 
+        # Print version information
+        from . import __version__
+
+        self.logger.info(f"Starting MQTT application (mqtt-application v{__version__})...")
+
         self._running = True
-        self.logger.info("Starting MQTT application...")
 
         try:
             # Start all services
