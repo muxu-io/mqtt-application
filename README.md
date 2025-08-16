@@ -119,15 +119,15 @@ class MyApplication:
     def __init__(self):
         # Pass self as callback_context so config can find your methods
         self.app = MqttApplication(callback_context=self)
-    
+
     async def _on_status_message(self, topic: str, payload: str, properties):
         """Handle status messages from any device."""
         print(f"Status from {topic}: {payload}")
-    
+
     async def _on_ack_message(self, topic: str, payload: str, properties):
         """Handle acknowledgment messages."""
         print(f"ACK from {topic}: {payload}")
-    
+
     async def run(self):
         async with self.app:
             await self.app.run()

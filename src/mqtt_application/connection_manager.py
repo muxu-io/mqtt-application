@@ -51,9 +51,32 @@ class MqttConnectionManager:
         # Set up logging callback
         self._connector.set_log_callback(self._handle_connector_log)
 
+        # Patch the connector's async scheduling to use our stored event loop
+        if self._event_loop:
+            self._patch_connector_async_scheduling()
+
         # Track message callbacks for different topics
         self._message_callbacks: dict[str, Callable] = {}
         self._subscribed_topics = set()
+
+    def _patch_connector_async_scheduling(self) -> None:
+        """Patch the connector's async callback scheduling to use our stored event loop."""
+        original_schedule = self._connector._schedule_async_callback
+
+        def patched_schedule(topic: str, message: str) -> None:
+            """Schedule an async callback using our stored event loop."""
+            if self._event_loop:
+                try:
+                    self._event_loop.call_soon_threadsafe(
+                        lambda: asyncio.create_task(self._connector._message_callback(topic, message))
+                    )
+                except Exception as e:
+                    self.logger.error(f"Error scheduling async callback for topic {topic}: {e}")
+            else:
+                # Fallback to original method
+                original_schedule(topic, message)
+
+        self._connector._schedule_async_callback = patched_schedule
 
     @property
     def is_connected(self) -> bool:
@@ -161,7 +184,7 @@ class MqttConnectionManager:
 
         connected = await self._connector.connect()
         if connected:
-            # Set the global message callback
+            # Set the global message callback (async, handled by our patched scheduler)
             self._connector.set_message_callback(self._global_message_callback)
             # Log successful connection using the MQTT logger (which respects enable_stdout)
             try:
