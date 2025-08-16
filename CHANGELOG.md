@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.1 (2025-08-16)
+
+### Bug Fixes
+
+- Patch mqtt-connector async scheduling to use stored event loop
+  ([`3bc0f7f`](https://github.com/muxu-io/mqtt-application/commit/3bc0f7fc2cb4ba5c155d1e8d854d09b38fbd1015))
+
+
 ## v1.0.0 (2025-08-16)
 
 - Initial Release
