@@ -24,8 +24,9 @@ while maintaining responsiveness and monitoring capabilities.
 """
 
 import json
-import pytest
 from datetime import datetime
+
+import pytest
 
 from mqtt_application.command_handler import AsyncCommandHandler
 from mqtt_application.status_publisher import StatusValidationError
@@ -55,9 +56,7 @@ class TestImmediateStatusPublishing:
     """Test immediate status publishing on changes."""
 
     @pytest.mark.asyncio
-    async def test_immediate_publish_on_status_change(
-        self, mqtt_logger, trackable_connection_manager
-    ):
+    async def test_immediate_publish_on_status_change(self, mqtt_logger, trackable_connection_manager):
         """Test that status changes trigger immediate publish."""
         from mqtt_application.status_publisher import PeriodicStatusPublisher
 
@@ -78,9 +77,7 @@ class TestImmediateStatusPublishing:
         # Verify immediate publish flag is set (debug logging verified via integration tests)
 
     @pytest.mark.asyncio
-    async def test_immediate_publish_on_operational_status_change(
-        self, mqtt_logger, trackable_connection_manager
-    ):
+    async def test_immediate_publish_on_operational_status_change(self, mqtt_logger, trackable_connection_manager):
         """Test that operational status changes trigger immediate publish."""
         from mqtt_application.status_publisher import PeriodicStatusPublisher
 
@@ -99,9 +96,7 @@ class TestImmediateStatusPublishing:
         # Verify immediate publish flag is set (debug logging verified via integration tests)
 
     @pytest.mark.asyncio
-    async def test_no_immediate_publish_on_same_values(
-        self, mqtt_logger, trackable_connection_manager
-    ):
+    async def test_no_immediate_publish_on_same_values(self, mqtt_logger, trackable_connection_manager):
         """Test that updating with same values doesn't trigger immediate publish."""
         from mqtt_application.status_publisher import PeriodicStatusPublisher
 
@@ -127,9 +122,7 @@ class TestKeepAlivePublishing:
     """Test keep-alive publishing modes."""
 
     @pytest.mark.asyncio
-    async def test_change_only_publishing_default(
-        self, mqtt_logger, trackable_connection_manager
-    ):
+    async def test_change_only_publishing_default(self, mqtt_logger, trackable_connection_manager):
         """Test that change-only publishing is enabled by default."""
         from mqtt_application.status_publisher import PeriodicStatusPublisher
 
@@ -146,9 +139,7 @@ class TestKeepAlivePublishing:
         assert publisher.enable_keepalive_publishing is False
 
     @pytest.mark.asyncio
-    async def test_keepalive_publishing_enabled(
-        self, mqtt_logger, trackable_connection_manager
-    ):
+    async def test_keepalive_publishing_enabled(self, mqtt_logger, trackable_connection_manager):
         """Test keep-alive publishing configuration."""
         from mqtt_application.status_publisher import PeriodicStatusPublisher
 
@@ -166,9 +157,7 @@ class TestKeepAlivePublishing:
         assert publisher.use_retained_messages is True  # Still optimized
 
     @pytest.mark.asyncio
-    async def test_status_change_detection(
-        self, mqtt_logger, trackable_connection_manager
-    ):
+    async def test_status_change_detection(self, mqtt_logger, trackable_connection_manager):
         """Test status change detection logic."""
         from mqtt_application.status_publisher import PeriodicStatusPublisher
 
@@ -210,9 +199,7 @@ class TestRetainedMessages:
     """Test MQTT retained message functionality."""
 
     @pytest.mark.asyncio
-    async def test_retained_messages_enabled_by_default(
-        self, mqtt_logger, trackable_connection_manager
-    ):
+    async def test_retained_messages_enabled_by_default(self, mqtt_logger, trackable_connection_manager):
         """Test that retained messages are enabled by default."""
         from mqtt_application.status_publisher import PeriodicStatusPublisher
 
@@ -232,9 +219,7 @@ class TestRetainedMessages:
         assert call_args[1]["qos"] == 0  # QoS should be 0 for status
 
     @pytest.mark.asyncio
-    async def test_publish_immediately_method(
-        self, mqtt_logger, trackable_connection_manager
-    ):
+    async def test_publish_immediately_method(self, mqtt_logger, trackable_connection_manager):
         """Test the publish_immediately method bypasses change detection."""
         from mqtt_application.status_publisher import PeriodicStatusPublisher
 
@@ -263,9 +248,7 @@ class TestStatusValidationIntegration:
     """Test acknowledgment message format and validation."""
 
     @pytest.mark.asyncio
-    async def test_successful_acknowledgment(
-        self, command_handler_with_config, trackable_connection_manager
-    ):
+    async def test_successful_acknowledgment(self, command_handler_with_config, trackable_connection_manager):
         """Test successful acknowledgment without errors."""
         await command_handler_with_config.send_acknowledgment(
             device_id="test_device",
@@ -293,9 +276,7 @@ class TestStatusValidationIntegration:
         assert "error_msg" not in payload
 
     @pytest.mark.asyncio
-    async def test_error_acknowledgment_with_details(
-        self, command_handler_with_config, trackable_connection_manager
-    ):
+    async def test_error_acknowledgment_with_details(self, command_handler_with_config, trackable_connection_manager):
         """Test error acknowledgment with error code and message."""
         await command_handler_with_config.send_acknowledgment(
             device_id="test_device",
@@ -324,9 +305,7 @@ class TestStatusValidationIntegration:
         self, command_handler_with_config, trackable_connection_manager
     ):
         """Test error acknowledgment without error details raises ValueError (improved behavior)."""
-        with pytest.raises(
-            ValueError, match="Error status requires both error_code and error_msg"
-        ):
+        with pytest.raises(ValueError, match="Error status requires both error_code and error_msg"):
             await command_handler_with_config.send_acknowledgment(
                 device_id="test_device",
                 cmd_id="cmd_123",
@@ -342,9 +321,7 @@ class TestCompletionMessages:
     """Test completion message structure and error handling."""
 
     @pytest.mark.asyncio
-    async def test_successful_completion(
-        self, command_handler_with_config, trackable_connection_manager
-    ):
+    async def test_successful_completion(self, command_handler_with_config, trackable_connection_manager):
         """Test successful completion without errors."""
         await command_handler_with_config.send_completion_status(
             device_id="test_device",
@@ -372,9 +349,7 @@ class TestCompletionMessages:
         assert "error_msg" not in payload
 
     @pytest.mark.asyncio
-    async def test_error_completion_with_details(
-        self, command_handler_with_config, trackable_connection_manager
-    ):
+    async def test_error_completion_with_details(self, command_handler_with_config, trackable_connection_manager):
         """Test error completion with error code and message."""
         await command_handler_with_config.send_completion_status(
             device_id="test_device",
@@ -403,9 +378,7 @@ class TestCommandHandlerErrorScenarios:
     """Test error scenarios in command handling with new status structure."""
 
     @pytest.mark.asyncio
-    async def test_missing_command_error(
-        self, command_handler_with_config, trackable_connection_manager
-    ):
+    async def test_missing_command_error(self, command_handler_with_config, trackable_connection_manager):
         """Test error handling when command is missing."""
         payload = json.dumps(
             {
@@ -415,9 +388,7 @@ class TestCommandHandlerErrorScenarios:
             }
         )
 
-        await command_handler_with_config.handle_command(
-            "icsia/test_device/cmd", payload
-        )
+        await command_handler_with_config.handle_command("icsia/test_device/cmd", payload)
 
         # Should send error acknowledgment only (no completion since command determination failed)
         trackable_connection_manager.publish.assert_called_once()
@@ -432,9 +403,7 @@ class TestCommandHandlerErrorScenarios:
         )
 
     @pytest.mark.asyncio
-    async def test_missing_cmd_id_error(
-        self, command_handler_with_config, trackable_connection_manager
-    ):
+    async def test_missing_cmd_id_error(self, command_handler_with_config, trackable_connection_manager):
         """Test error handling when cmd_id is missing."""
         payload = json.dumps(
             {
@@ -444,9 +413,7 @@ class TestCommandHandlerErrorScenarios:
             }
         )
 
-        await command_handler_with_config.handle_command(
-            "icsia/test_device/cmd/test_command", payload
-        )
+        await command_handler_with_config.handle_command("icsia/test_device/cmd/test_command", payload)
 
         # Should send error acknowledgment
         trackable_connection_manager.publish.assert_called_once()
@@ -455,21 +422,14 @@ class TestCommandHandlerErrorScenarios:
         payload_data = call_args[0][1]
         assert payload_data["status"] == "error"
         assert payload_data["error_code"] == "INVALID_PAYLOAD"
-        assert (
-            payload_data["error_msg"]
-            == "Missing required field 'cmd_id'. Include cmd_id field in command payload."
-        )
+        assert payload_data["error_msg"] == "Missing required field 'cmd_id'. Include cmd_id field in command payload."
 
     @pytest.mark.asyncio
-    async def test_invalid_json_error(
-        self, command_handler_with_config, trackable_connection_manager
-    ):
+    async def test_invalid_json_error(self, command_handler_with_config, trackable_connection_manager):
         """Test error handling for invalid JSON payload."""
         invalid_payload = "{ invalid json }"
 
-        await command_handler_with_config.handle_command(
-            "icsia/test_device/cmd/test", invalid_payload
-        )
+        await command_handler_with_config.handle_command("icsia/test_device/cmd/test", invalid_payload)
 
         # Should send error acknowledgment
         trackable_connection_manager.publish.assert_called_once()
@@ -482,23 +442,15 @@ class TestCommandHandlerErrorScenarios:
         assert "Please check JSON syntax and formatting." in payload_data["error_msg"]
 
     @pytest.mark.asyncio
-    async def test_validation_error_completion(
-        self, command_handler_with_config, trackable_connection_manager
-    ):
+    async def test_validation_error_completion(self, command_handler_with_config, trackable_connection_manager):
         """Test validation error sends proper completion message."""
         # Set up a command schema that requires a field
-        command_handler_with_config.command_schemas["start_task"] = {
-            "required_param": "test_value"
-        }
+        command_handler_with_config.command_schemas["start_task"] = {"required_param": "test_value"}
 
         # Create a payload that will fail validation (missing required_param)
-        payload = json.dumps(
-            {"command": "start_task", "cmd_id": "test_123", "data": {}}
-        )
+        payload = json.dumps({"command": "start_task", "cmd_id": "test_123", "data": {}})
 
-        await command_handler_with_config.handle_command(
-            "icsia/test_device/cmd/start_task", payload
-        )
+        await command_handler_with_config.handle_command("icsia/test_device/cmd/start_task", payload)
 
         # Should send acknowledgment first, then completion with error
         assert trackable_connection_manager.publish.call_count == 2
@@ -516,17 +468,11 @@ class TestCommandHandlerErrorScenarios:
         assert "missing required field" in completion_payload["error_msg"]
 
     @pytest.mark.asyncio
-    async def test_unknown_command_error(
-        self, command_handler_with_config, trackable_connection_manager
-    ):
+    async def test_unknown_command_error(self, command_handler_with_config, trackable_connection_manager):
         """Test unknown command sends proper completion error."""
-        payload = json.dumps(
-            {"command": "unknown_command", "cmd_id": "test_123", "data": {}}
-        )
+        payload = json.dumps({"command": "unknown_command", "cmd_id": "test_123", "data": {}})
 
-        await command_handler_with_config.handle_command(
-            "icsia/test_device/cmd/unknown_command", payload
-        )
+        await command_handler_with_config.handle_command("icsia/test_device/cmd/unknown_command", payload)
 
         # Should send acknowledgment first, then completion with error
         assert trackable_connection_manager.publish.call_count == 2
@@ -540,9 +486,7 @@ class TestCommandHandlerErrorScenarios:
         assert "Available commands:" in completion_payload["error_msg"]
 
     @pytest.mark.asyncio
-    async def test_execution_error_completion(
-        self, command_handler_with_config, trackable_connection_manager
-    ):
+    async def test_execution_error_completion(self, command_handler_with_config, trackable_connection_manager):
         """Test execution error sends proper completion message."""
 
         # Mock a command that raises an exception
@@ -551,13 +495,9 @@ class TestCommandHandlerErrorScenarios:
 
         command_handler_with_config.commands["failing_command"] = failing_command
 
-        payload = json.dumps(
-            {"command": "failing_command", "cmd_id": "test_123", "data": {}}
-        )
+        payload = json.dumps({"command": "failing_command", "cmd_id": "test_123", "data": {}})
 
-        await command_handler_with_config.handle_command(
-            "icsia/test_device/cmd/failing_command", payload
-        )
+        await command_handler_with_config.handle_command("icsia/test_device/cmd/failing_command", payload)
 
         # Should send acknowledgment first, then completion with error
         assert trackable_connection_manager.publish.call_count == 2
@@ -575,11 +515,10 @@ class TestPublishingBehaviorIntegration:
 
     @pytest.mark.asyncio
     @pytest.mark.integration
-    async def test_immediate_publishing_with_real_mqtt(
-        self, mqtt_logger, connection_manager
-    ):
+    async def test_immediate_publishing_with_real_mqtt(self, mqtt_logger, connection_manager):
         """Test immediate publishing with real MQTT connection."""
         import uuid
+
         from mqtt_application.status_publisher import PeriodicStatusPublisher
 
         # Create unique test topic
@@ -617,9 +556,7 @@ class TestPublishingBehaviorIntegration:
             pytest.skip(f"Integration test failed: {e}")
 
     @pytest.mark.asyncio
-    async def test_keepalive_vs_change_only_behavior(
-        self, mqtt_logger, trackable_connection_manager
-    ):
+    async def test_keepalive_vs_change_only_behavior(self, mqtt_logger, trackable_connection_manager):
         """Test behavior difference between keep-alive and change-only modes."""
         from mqtt_application.status_publisher import PeriodicStatusPublisher
 
@@ -659,9 +596,7 @@ class TestErrorCodes:
     """Test specific error codes are used correctly."""
 
     @pytest.mark.asyncio
-    async def test_all_error_codes_coverage(
-        self, command_handler_with_config, trackable_connection_manager
-    ):
+    async def test_all_error_codes_coverage(self, command_handler_with_config, trackable_connection_manager):
         """Test that all defined error codes are used appropriately."""
         test_cases = [
             {
@@ -698,9 +633,7 @@ class TestErrorCodes:
             if test_case["scenario"] == "unknown_command":
                 topic = "icsia/test_device/cmd/unknown"
 
-            await command_handler_with_config.handle_command(
-                topic, test_case["payload"]
-            )
+            await command_handler_with_config.handle_command(topic, test_case["payload"])
 
             # Find the call with the expected error code
             found_error = False
@@ -710,9 +643,7 @@ class TestErrorCodes:
                     found_error = True
                     break
 
-            assert (
-                found_error
-            ), f"Error code {test_case['expected_code']} not found for {test_case['scenario']}"
+            assert found_error, f"Error code {test_case['expected_code']} not found for {test_case['scenario']}"
 
 
 # ============================================================================
@@ -922,31 +853,21 @@ async def test_status_payload_validation_type_mismatch(mqtt_logger, connection_m
     )
 
     # Test type mismatches
-    with pytest.raises(
-        StatusValidationError, match="Field 'temperature' expected float, got str"
-    ):
+    with pytest.raises(StatusValidationError, match="Field 'temperature' expected float, got str"):
         publisher.update_status_payload({"temperature": "hot"})
 
-    with pytest.raises(
-        StatusValidationError, match="Field 'speed' expected int, got float"
-    ):
+    with pytest.raises(StatusValidationError, match="Field 'speed' expected int, got float"):
         publisher.update_status_payload({"speed": 100.5})
 
-    with pytest.raises(
-        StatusValidationError, match="Field 'moving' expected bool, got str"
-    ):
+    with pytest.raises(StatusValidationError, match="Field 'moving' expected bool, got str"):
         publisher.update_status_payload({"moving": "yes"})
 
-    with pytest.raises(
-        StatusValidationError, match="Field 'system_mode' expected str, got int"
-    ):
+    with pytest.raises(StatusValidationError, match="Field 'system_mode' expected str, got int"):
         publisher.update_status_payload({"system_mode": 123})
 
 
 @pytest.mark.asyncio
-async def test_status_payload_validation_dict_structure(
-    mqtt_logger, connection_manager
-):
+async def test_status_payload_validation_dict_structure(mqtt_logger, connection_manager):
     """Test validation of nested dictionary structures."""
     from mqtt_application.status_publisher import PeriodicStatusPublisher
 
@@ -971,18 +892,12 @@ async def test_status_payload_validation_dict_structure(
     publisher.update_status_payload(valid_update)
 
     # Missing required keys should fail
-    with pytest.raises(
-        StatusValidationError, match="Field 'position' missing required key 'z'"
-    ):
+    with pytest.raises(StatusValidationError, match="Field 'position' missing required key 'z'"):
         publisher.update_status_payload({"position": {"x": 10.0, "y": 20.0}})
 
     # Wrong nested type should fail
-    with pytest.raises(
-        StatusValidationError, match="Field 'position.x' expected float, got str"
-    ):
-        publisher.update_status_payload(
-            {"position": {"x": "invalid", "y": 20.0, "z": -5.2}}
-        )
+    with pytest.raises(StatusValidationError, match="Field 'position.x' expected float, got str"):
+        publisher.update_status_payload({"position": {"x": "invalid", "y": 20.0, "z": -5.2}})
 
 
 @pytest.mark.asyncio
@@ -1005,26 +920,18 @@ async def test_status_payload_validation_with_defaults(mqtt_logger, connection_m
     )
 
     # Valid types matching defaults should work
-    publisher.update_status_payload(
-        {"temperature": 30.5, "error_count": 2, "status_message": "warning"}
-    )
+    publisher.update_status_payload({"temperature": 30.5, "error_count": 2, "status_message": "warning"})
 
     # Invalid types should fail even with default configs
-    with pytest.raises(
-        StatusValidationError, match="Field 'temperature' expected float, got int"
-    ):
+    with pytest.raises(StatusValidationError, match="Field 'temperature' expected float, got int"):
         publisher.update_status_payload({"temperature": 30})
 
-    with pytest.raises(
-        StatusValidationError, match="Field 'error_count' expected int, got str"
-    ):
+    with pytest.raises(StatusValidationError, match="Field 'error_count' expected int, got str"):
         publisher.update_status_payload({"error_count": "none"})
 
 
 @pytest.mark.asyncio
-async def test_status_payload_validation_allows_extra_fields(
-    mqtt_logger, connection_manager
-):
+async def test_status_payload_validation_allows_extra_fields(mqtt_logger, connection_manager):
     """Test that validation allows fields not defined in config."""
     from mqtt_application.status_publisher import PeriodicStatusPublisher
 
@@ -1043,9 +950,7 @@ async def test_status_payload_validation_allows_extra_fields(
         {
             "temperature": 30.0,  # Must match config type
             "new_field": "any_value",  # Not in config, should be allowed
-            "custom_data": {
-                "arbitrary": "structure"
-            },  # Not in config, should be allowed
+            "custom_data": {"arbitrary": "structure"},  # Not in config, should be allowed
         }
     )
 
@@ -1109,9 +1014,7 @@ async def test_application_status_validation_integration():
         app.update_status(valid_status)
 
         # Invalid type should raise exception
-        with pytest.raises(
-            StatusValidationError, match="Field 'speed' expected int, got str"
-        ):
+        with pytest.raises(StatusValidationError, match="Field 'speed' expected int, got str"):
             app.update_status({"speed": "fast"})
 
         # Missing required nested key should fail

@@ -2,8 +2,9 @@
 
 import asyncio
 
-from .command_handler import AsyncCommandHandler
 from mqtt_logger import MqttLogger
+
+from .command_handler import AsyncCommandHandler
 
 
 async def async_worker(
@@ -26,9 +27,7 @@ async def async_worker(
         while True:
             # Get a message from the queue
             topic, payload = await message_queue.get()
-            logger.info(
-                f"[Worker {worker_id}] Processing message from topic '{topic}'..."
-            )
+            logger.info(f"[Worker {worker_id}] Processing message from topic '{topic}'...")
 
             try:
                 await command_handler.handle_command(topic, payload)

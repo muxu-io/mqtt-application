@@ -9,9 +9,9 @@ as the motor system state changes.
 """
 
 import asyncio
-import time
 import random
-from typing import Dict, Any
+import time
+from typing import Any
 
 from mqtt_application import MqttApplication
 
@@ -81,25 +81,19 @@ class MotorControlApp:
                 f"Moving={self.is_moving}, Temp={self.temperature: .1f}°C"
             )
 
-    async def _move_command(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _move_command(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle move command according to Motor Control API.
 
         Payload is automatically validated against the schema defined in config.yaml.
         """
         try:
             # Data is already validated, so we can access fields safely
-            target_position = data[
-                "target_position"
-            ]  # Guaranteed to exist with x, y, z
-            speed = data.get(
-                "speed", self.current_speed
-            )  # Default applied if not provided
+            target_position = data["target_position"]  # Guaranteed to exist with x, y, z
+            speed = data.get("speed", self.current_speed)  # Default applied if not provided
             mode = data.get("mode", "absolute")  # Default applied if not provided
 
             if self.app.logger:
-                self.app.logger.info(
-                    f"Moving to position: {target_position}, speed: {speed}, mode: {mode}"
-                )
+                self.app.logger.info(f"Moving to position: {target_position}, speed: {speed}, mode: {mode}")
 
             # Set moving state and update status
             self.is_moving = True
@@ -108,14 +102,9 @@ class MotorControlApp:
 
             # Simulate movement time based on distance
             if mode == "absolute":
-                distance = sum(
-                    abs(target_position[axis] - self.current_position[axis])
-                    for axis in ["x", "y", "z"]
-                )
+                distance = sum(abs(target_position[axis] - self.current_position[axis]) for axis in ["x", "y", "z"])
             else:
-                distance = sum(
-                    abs(target_position.get(axis, 0)) for axis in ["x", "y", "z"]
-                )
+                distance = sum(abs(target_position.get(axis, 0)) for axis in ["x", "y", "z"])
 
             movement_time = max(0.1, distance / speed)  # Simple time calculation
             await asyncio.sleep(movement_time)
@@ -144,7 +133,7 @@ class MotorControlApp:
             self._update_system_status()
             raise
 
-    async def _home_command(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _home_command(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle home command according to Motor Control API.
 
         Payload is automatically validated against the schema defined in config.yaml.
@@ -186,7 +175,7 @@ class MotorControlApp:
             self._update_system_status()
             raise
 
-    async def _stop_command(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _stop_command(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle stop command according to Motor Control API."""
         if self.app.logger:
             self.app.logger.warning("Emergency stop activated")
@@ -196,7 +185,7 @@ class MotorControlApp:
 
         return {"stopped": True, "final_position": self.current_position.copy()}
 
-    async def _set_speed_command(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _set_speed_command(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle set_speed command according to Motor Control API.
 
         Payload is automatically validated against the schema defined in config.yaml.
@@ -216,9 +205,7 @@ class MotorControlApp:
             self._update_system_status()
 
             if self.app.logger:
-                self.app.logger.info(
-                    f"Speed changed from {old_speed} to {speed} {units}"
-                )
+                self.app.logger.info(f"Speed changed from {old_speed} to {speed} {units}")
 
             return {"old_speed": old_speed, "new_speed": speed, "units": units}
 
@@ -227,7 +214,7 @@ class MotorControlApp:
             self._update_system_status()
             raise
 
-    async def _get_position_command(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    async def _get_position_command(self, data: dict[str, Any]) -> dict[str, Any]:
         """Handle get_position command - returns current motor state."""
         self._update_system_status()
 
@@ -259,18 +246,10 @@ class MotorControlApp:
         async with self.app as app:
             # Log startup information
             startup_info = {
-                "device_id": app.app_config.get("device", {}).get(
-                    "device_id", "motor_controller_01"
-                ),
-                "mqtt_broker": app.app_config.get("mqtt", {}).get(
-                    "broker", "test.mosquitto.org"
-                ),
-                "status_topic": app.app_config.get("topics", {})
-                .get("status", {})
-                .get("current", "unknown"),
-                "command_topic": app.app_config.get("topics", {}).get(
-                    "command", "unknown"
-                ),
+                "device_id": app.app_config.get("device", {}).get("device_id", "motor_controller_01"),
+                "mqtt_broker": app.app_config.get("mqtt", {}).get("broker", "test.mosquitto.org"),
+                "status_topic": app.app_config.get("topics", {}).get("status", {}).get("current", "unknown"),
+                "command_topic": app.app_config.get("topics", {}).get("command", "unknown"),
             }
             if app.logger:
                 app.logger.info("Motor Control Application Started", startup_info)
@@ -283,9 +262,7 @@ class MotorControlApp:
 
             try:
                 namespace = app.app_config.get("namespace", "icsia")
-                device_id = app.app_config.get("device", {}).get(
-                    "device_id", "motor_controller_01"
-                )
+                device_id = app.app_config.get("device", {}).get("device_id", "motor_controller_01")
                 command_info = {
                     "move": f"{namespace}/{device_id}/cmd/move",
                     "home": f"{namespace}/{device_id}/cmd/home",
@@ -316,9 +293,7 @@ async def main():
     except KeyboardInterrupt:
         print("\nShutdown requested...")  # Keep this print for immediate user feedback
     except Exception as e:
-        print(
-            f"Application error: {e}"
-        )  # Keep this print for immediate error visibility
+        print(f"Application error: {e}")  # Keep this print for immediate error visibility
         raise
 
 
