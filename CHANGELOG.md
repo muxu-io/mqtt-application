@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.4 (2025-08-16)
+
+### Bug Fixes
+
+- Update dependencies
+  ([`9e7910d`](https://github.com/muxu-io/mqtt-application/commit/9e7910da3f39dc35959634ff201589ab829416b3))
+
+
 ## v1.0.3 (2025-08-16)
 
 ### Bug Fixes
