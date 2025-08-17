@@ -1,0 +1,64 @@
+# PyPI Publish Workflow
+# 
+# This workflow MUST be local to each repository due to PyPI Trusted Publishers
+# security requirements. Reusable workflows from other repositories cannot be 
+# used with PyPI Trusted Publishers because PyPI validates the exact workflow
+# file that executes the publish action.
+#
+# See: https://docs.pypi.org/trusted-publishers/
+
+name: PyPI Publish
+run-name: Publish ${{ github.ref_name }}
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  pypi-publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/${{ github.event.repository.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package
+        run: twine check dist/*
+
+      - name: Verify artifacts
+        run: |
+          echo "Package artifacts:"
+          ls -la dist/
+          echo "Package contents:"
+          for file in dist/*.whl; do
+            if [ -f "$file" ]; then
+              echo "Contents of $file:"
+              python -m zipfile -l "$file" | head -20
+            fi
+          done
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true
+          print-hash: true
