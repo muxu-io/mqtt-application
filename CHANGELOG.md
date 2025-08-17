@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.1.0 (2025-08-17)
+
+### Bug Fixes
+
+- **ci**: Move commitlint configuration to .github
+  ([`ce44f7c`](https://github.com/muxu-io/mqtt-application/commit/ce44f7c6255ddcd0e6c7d28b98d3832805be8468))
+
+### Features
+
+- **ci**: Use reusable workflows
+  ([`3bd1a70`](https://github.com/muxu-io/mqtt-application/commit/3bd1a70527e871851a47911f891d613c0f68206e))
+
+
 ## v1.0.4 (2025-08-16)
 
 ### Bug Fixes
